@@ -85,25 +85,24 @@
         }
         button.action-btn:hover { background: #218838; }
 
-        /* Przycisk czyszczenia */
-        button.clear-btn {
-            background: #dc3545;
-            margin-top: 5px;
-        }
+        button.clear-btn { background: #dc3545; margin-top: 5px; }
         button.clear-btn:hover { background: #c82333; }
 
         /* Ustawienia losowania */
         .settings-panel {
             background: rgba(0, 0, 0, 0.6);
-            padding: 15px;
+            padding: 20px;
             border-radius: 10px;
             border: 2px solid #d4af37;
             margin-bottom: 25px;
             display: flex;
-            justify-content: center;
-            align-items: center;
             flex-direction: column;
+            align-items: center;
         }
+
+        .radio-group { margin-bottom: 15px; }
+        .radio-group label { cursor: pointer; margin: 0 10px; font-size: 16px; color: #fff; }
+        .radio-group input { margin-right: 5px; }
 
         /* Przycisk Główny */
         .spin-btn {
@@ -143,7 +142,7 @@
         .spin-animation { animation: flicker 0.1s infinite; color: #ffd700 !important; }
         @keyframes flicker { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-        /* Historia i Listy */
+        /* Historia */
         .stats-info { font-size: 12px; color: #888; margin-top: 5px; margin-bottom: 10px; }
         
         .history-list {
@@ -154,6 +153,9 @@
         }
         .history-list li .time { color: #888; font-size: 12px; display: block; margin-bottom: 4px; }
         .highlight { color: #ffd700; font-weight: bold; }
+        .mode-badge { background: #444; padding: 2px 6px; border-radius: 3px; font-size: 10px; text-transform: uppercase; margin-right: 5px; color: #fff;}
+        .mode-versus { border-bottom: 2px solid #007bff; }
+        .mode-deathmatch { border-bottom: 2px solid #dc3545; }
     </style>
 </head>
 <body>
@@ -183,8 +185,16 @@
         </div>
 
         <div class="settings-panel">
-            <label style="color:#ffd700; font-weight:bold; margin-bottom: 5px;">Ilu graczy wylosować do starcia?</label>
-            <input type="number" id="drawCount" min="1" max="10" value="2" style="width: 100px; text-align:center;">
+            <div class="radio-group">
+                <label style="color:#ffd700; font-weight:bold; display:block; text-align:center; margin-bottom:10px;">Wybierz tryb gry:</label>
+                <label><input type="radio" name="gameMode" value="versus" checked onchange="toggleMode()"> ⚔️ Versus (1 vs 1)</label>
+                <label><input type="radio" name="gameMode" value="deathmatch" onchange="toggleMode()"> 💀 Deathmatch</label>
+            </div>
+
+            <div id="deathmatchSettings" class="hidden" style="margin-top: 10px;">
+                <label style="color:#ffd700; font-size: 14px; display:block; margin-bottom: 5px;">Ilu graczy wpuścić na arenę?</label>
+                <input type="number" id="drawCount" min="3" max="20" value="3" style="width: 100px; text-align:center;">
+            </div>
         </div>
         
         <button id="spinBtn" class="spin-btn" onclick="drawJackpot()">LOSUJ!</button>
@@ -203,20 +213,26 @@
     </div>
 
     <script>
-        // Bazy danych w pamięci przeglądarki
-        let players = JSON.parse(localStorage.getItem('jackpotPlayersV3')) || [];
-        let topics = JSON.parse(localStorage.getItem('jackpotTopicsV3')) || [];
-        let history = JSON.parse(localStorage.getItem('jackpotHistoryV3')) || [];
+        let players = JSON.parse(localStorage.getItem('jackpotPlayersV4')) || [];
+        let topics = JSON.parse(localStorage.getItem('jackpotTopicsV4')) || [];
+        let history = JSON.parse(localStorage.getItem('jackpotHistoryV4')) || [];
 
-        window.onload = function() {
-            updateUI();
-        };
+        window.onload = function() { updateUI(); };
+
+        function toggleMode() {
+            const mode = document.querySelector('input[name="gameMode"]:checked').value;
+            const dmSettings = document.getElementById('deathmatchSettings');
+            if(mode === 'deathmatch') {
+                dmSettings.classList.remove('hidden');
+            } else {
+                dmSettings.classList.add('hidden');
+            }
+        }
 
         function addPlayer() {
             const name = document.getElementById('newPlayer').value.trim();
             if (!name) return alert("Wpisz nazwę gracza!");
             if (players.includes(name)) return alert("Gracz jest już na liście!");
-
             players.push(name);
             saveData();
             document.getElementById('newPlayer').value = "";
@@ -225,24 +241,18 @@
 
         function clearPlayers() {
             if(confirm("Czy na pewno chcesz bezpowrotnie usunąć wszystkich graczy z listy?")) {
-                players = [];
-                saveData();
-                updateUI();
+                players = []; saveData(); updateUI();
             }
         }
 
         function addTopic() {
             const author = document.getElementById('topicAuthor').value;
             const text = document.getElementById('newTopic').value.trim();
-
             if (!author) return alert("Wybierz autora tematu!");
             if (!text) return alert("Wpisz treść tematu!");
 
-            // Sprawdzanie limitu 5 tematów na osobę
             const authorTopics = topics.filter(t => t.author === author);
-            if (authorTopics.length >= 5) {
-                return alert(`Gracz ${author} wykorzystał już swój limit 5 tematów!`);
-            }
+            if (authorTopics.length >= 5) return alert(`Gracz ${author} wykorzystał już swój limit 5 tematów!`);
 
             topics.push({ author: author, text: text });
             saveData();
@@ -253,17 +263,16 @@
 
         function clearTopics() {
             if(confirm("Czy na pewno chcesz całkowicie opróżnić pulę dodanych tematów?")) {
-                topics = [];
-                saveData();
-                updateUI();
+                topics = []; saveData(); updateUI();
             }
         }
 
         function drawJackpot() {
-            const drawCount = parseInt(document.getElementById('drawCount').value);
+            const mode = document.querySelector('input[name="gameMode"]:checked').value;
+            const drawCount = mode === 'versus' ? 2 : parseInt(document.getElementById('drawCount').value);
             
             if (players.length < drawCount) {
-                return alert(`Chcesz wylosować ${drawCount} graczy, a na liście masz tylko ${players.length}!`);
+                return alert(`Potrzebujesz co najmniej ${drawCount} graczy na liście, żeby wylosować ten tryb!`);
             }
             if (topics.length === 0) {
                 return alert("Pula tematów jest pusta! Ktoś z graczy musi najpierw dorzucić temat.");
@@ -280,26 +289,24 @@
             winnerNames.classList.add('spin-animation');
             winnerTopic.classList.add('spin-animation');
 
-            // Animacja losowania
             let counter = 0;
+            const separator = mode === 'versus' ? " <span style='color:#ff3333;'>VS</span> " : " ⚡ ";
+
             const interval = setInterval(() => {
-                let randomPlayers = shuffleArray([...players]).slice(0, drawCount).join(" ⚡ ");
-                winnerNames.innerText = randomPlayers;
+                let randomPlayers = shuffleArray([...players]).slice(0, drawCount).join(separator);
+                winnerNames.innerHTML = randomPlayers;
                 winnerTopic.innerText = "...";
                 counter++;
             }, 100);
 
-            // Finał losowania po 2.5 sekundach
             setTimeout(() => {
                 clearInterval(interval);
                 winnerNames.classList.remove('spin-animation');
                 winnerTopic.classList.remove('spin-animation');
                 
-                // Ostateczne wylosowanie graczy
                 const finalPlayersArr = shuffleArray([...players]).slice(0, drawCount);
-                const finalPlayersStr = finalPlayersArr.join(" ⚡ ");
+                const finalPlayersStr = finalPlayersArr.join(separator);
                 
-                // Ostateczne wylosowanie tematu
                 const randomTopicObj = topics[Math.floor(Math.random() * topics.length)];
                 const finalTopic = randomTopicObj.text;
                 const topicAuthorDisplay = `👤 Autor: ${randomTopicObj.author}`;
@@ -310,11 +317,10 @@
                 btn.disabled = false;
                 btn.innerText = "LOSUJ PONOWNIE!";
 
-                saveToHistory(finalPlayersStr, finalTopic, topicAuthorDisplay);
+                const plainPlayersStr = finalPlayersArr.join(mode === 'versus' ? " vs " : " ⚡ ");
+                saveToHistory(plainPlayersStr, finalTopic, topicAuthorDisplay, mode);
             }, 2500);
         }
-
-        // --- Funkcje Pomocnicze ---
 
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -324,42 +330,39 @@
             return array;
         }
 
-        function saveToHistory(playersStr, topic, author) {
+        function saveToHistory(playersStr, topic, author, mode) {
             const now = new Date();
             const timeString = now.toLocaleTimeString('pl-PL');
-            
-            history.unshift({ time: timeString, players: playersStr, topic: topic, author: author });
-            if(history.length > 50) history.pop(); // Trzymamy max 50 ostatnich
+            history.unshift({ time: timeString, players: playersStr, topic: topic, author: author, mode: mode });
+            if(history.length > 50) history.pop();
             saveData();
             updateUI();
         }
 
         function saveData() {
-            localStorage.setItem('jackpotPlayersV3', JSON.stringify(players));
-            localStorage.setItem('jackpotTopicsV3', JSON.stringify(topics));
-            localStorage.setItem('jackpotHistoryV3', JSON.stringify(history));
+            localStorage.setItem('jackpotPlayersV4', JSON.stringify(players));
+            localStorage.setItem('jackpotTopicsV4', JSON.stringify(topics));
+            localStorage.setItem('jackpotHistoryV4', JSON.stringify(history));
         }
 
         function updateUI() {
-            // Aktualizacja liczników
             document.getElementById('playerCountDisplay').innerText = players.length;
             document.getElementById('topicCountDisplay').innerText = topics.length;
 
-            // Aktualizacja dropdownu autorów
             const authorSelect = document.getElementById('topicAuthor');
             let options = '<option value="">-- Wybierz autora --</option>';
-            players.forEach(p => {
-                options += `<option value="${p}">${p}</option>`;
-            });
+            players.forEach(p => { options += `<option value="${p}">${p}</option>`; });
             authorSelect.innerHTML = options;
 
-            // Aktualizacja historii
             const list = document.getElementById('historyList');
             list.innerHTML = "";
             history.forEach(record => {
+                const badgeClass = record.mode === 'versus' ? 'mode-versus' : 'mode-deathmatch';
+                const badgeText = record.mode === 'versus' ? 'Versus' : 'Deathmatch';
                 list.innerHTML += `
                     <li>
                         <span class="time">🕒 ${record.time}</span>
+                        <span class="mode-badge ${badgeClass}">${badgeText}</span>
                         Wybrani: <span class="highlight">${record.players}</span><br>
                         Temat: <i>"${record.topic}"</i> <span style="font-size:11px; color:#aaa;">(${record.author})</span>
                     </li>
