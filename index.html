@@ -77,10 +77,9 @@
         .mode-versus { border-bottom: 2px solid #007bff; }
         .mode-deathmatch { border-bottom: 2px solid #dc3545; }
 
-        /* Magia ukrywania elementów dla zwykłych graczy */
+        /* Magia ukrywania elementów TYLKO DLA DESTRUKCYJNYCH AKCJI */
         .admin-only { display: none; }
         body.is-admin .admin-only { display: block; }
-        body.is-admin .admin-only-flex { display: flex; }
 
         .admin-login-btn { margin-top: 30px; background: none; border: none; color: #555; cursor: pointer; text-decoration: underline; font-size: 12px; transition: color 0.3s;}
         .admin-login-btn:hover { color: #ffd700; }
@@ -117,7 +116,7 @@
             </div>
         </div>
 
-        <div class="settings-panel admin-only-flex admin-only">
+        <div class="settings-panel">
             <div class="radio-group">
                 <label style="color:#ffd700; font-weight:bold; display:block; text-align:center; margin-bottom:10px;">Wybierz tryb gry:</label>
                 <label><input type="radio" name="gameMode" value="versus" checked onchange="toggleMode()"> ⚔️ Versus (1 vs 1)</label>
@@ -130,7 +129,7 @@
             </div>
         </div>
         
-        <button id="spinBtn" class="spin-btn admin-only" onclick="drawJackpot()">LOSUJ!</button>
+        <button id="spinBtn" class="spin-btn" onclick="drawJackpot()">LOSUJ!</button>
         
         <div id="result" class="hidden">
             <p class="result-title">Wylosowani Uczestnicy:</p>
@@ -174,7 +173,7 @@
             if (password === "jackpot123") {
                 isAdmin = true;
                 document.body.classList.add("is-admin");
-                alert("Zalogowano pomyślnie! Masz teraz pełną kontrolę nad panelem.");
+                alert("Zalogowano pomyślnie! Przyciski usuwania i czyszczenia zostały odblokowane.");
                 updateUI();
             } else if (password !== null) {
                 alert("Nieprawidłowe hasło!");
@@ -260,8 +259,7 @@
         }
 
         function drawJackpot() {
-            if(!isAdmin) return; // Zabezpieczenie na wypadek, gdyby ktoś chciał wywołać to z konsoli przeglądarki
-
+            // USUNIĘTO BLOKADĘ ADMINA - teraz każdy może losować!
             const mode = document.querySelector('input[name="gameMode"]:checked').value;
             const drawCount = mode === 'versus' ? 2 : parseInt(document.getElementById('drawCount').value);
             
@@ -333,6 +331,7 @@
             const activeList = document.getElementById('activePlayersList');
             activeList.innerHTML = "";
             playersData.forEach(p => {
+                // Przycisk wyrzucania gracza pojawi się tylko wtedy, gdy jesteś zalogowany jako Admin
                 const kickBtnHTML = isAdmin ? `<button class="kick-btn" onclick="kickPlayer('${p.key}')">Wyrzuć</button>` : '';
                 activeList.innerHTML += `<li style="padding: 5px 10px;">👤 ${p.name} ${kickBtnHTML}</li>`;
             });
