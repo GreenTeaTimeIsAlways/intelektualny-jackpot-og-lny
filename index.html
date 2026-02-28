@@ -3,34 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Intelektualny Jackpot - Vegas Final 🎰</title>
+    <title>Intelektualny Jackpot - Kasyno</title>
     <style>
-        body {
-            background-color: #0f2b1c; color: #ffd700; font-family: 'Segoe UI', sans-serif;
-            display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0;
-            background-image: radial-gradient(circle, #1a4a30 0%, #0f2b1c 80%); padding: 15px; box-sizing: border-box;
-        }
-        .casino-container {
-            text-align: center; background: #111; padding: 20px; border-radius: 15px; border: 3px solid #ffd700;
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.4); max-width: 800px; width: 100%;
-        }
+        body { background-color: #0f2b1c; color: #ffd700; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; background-image: radial-gradient(circle, #1a4a30 0%, #0f2b1c 80%); padding: 15px; box-sizing: border-box; }
+        .casino-container { text-align: center; background: #111; padding: 20px; border-radius: 15px; border: 3px solid #ffd700; box-shadow: 0 0 30px rgba(255, 215, 0, 0.4); max-width: 800px; width: 100%; }
         
-        /* Bęben Slotu */
-        .slot-machine-view {
-            height: 120px; background: #000; border: 4px solid #d4af37; border-radius: 10px; margin: 15px 0;
-            position: relative; overflow: hidden; box-shadow: inset 0 0 20px #000;
-        }
+        .slot-machine-view { height: 120px; background: #000; border: 4px solid #d4af37; border-radius: 10px; margin: 15px 0; position: relative; overflow: hidden; box-shadow: inset 0 0 20px #000; }
         .slot-marker { position: absolute; top: 50%; left: 0; width: 100%; height: 2px; background: rgba(255, 0, 0, 0.8); transform: translateY(-50%); z-index: 3; box-shadow: 0 0 10px red; }
         .reel { position: absolute; top: 0; left: 0; width: 100%; transition: transform 4s cubic-bezier(0.1, 0, 0.1, 1); }
         .reel-item { height: 120px; line-height: 120px; font-size: 26px; font-weight: bold; color: #fff; text-transform: uppercase; text-shadow: 0 0 10px #ffd700; }
 
-        /* Układ poziomy */
-        .settings-row {
-            display: flex; flex-direction: row; justify-content: center; align-items: center;
-            gap: 30px; margin: 15px 0; background: rgba(0,0,0,0.4); padding: 12px; border-radius: 10px; border: 1px solid #333;
-        }
+        .settings-row { display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 30px; margin: 15px 0; background: rgba(0,0,0,0.4); padding: 12px; border-radius: 10px; border: 1px solid #333; }
         .settings-row label { display: flex; align-items: center; gap: 10px; font-size: 18px; cursor: pointer; font-weight: bold; }
-        .settings-row input[type="radio"], .settings-row input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; }
+        .settings-row input[type="radio"] { width: 20px; height: 20px; cursor: pointer; }
 
         .panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
         @media (max-width: 600px) { .panel-grid { grid-template-columns: 1fr; } }
@@ -39,7 +24,7 @@
         input, select { width: 100%; padding: 10px; margin-bottom: 8px; border: 2px solid #ffd700; background: #222; color: white; border-radius: 5px; box-sizing: border-box; }
         button.action-btn { width: 100%; padding: 10px; background: #28a745; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
         
-        .spin-btn { padding: 15px; font-size: 24px; font-weight: bold; cursor: pointer; background: linear-gradient(to bottom, #ffdf00, #d4af37); color: #000; border: none; border-radius: 50px; width: 100%; box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3); }
+        .spin-btn { padding: 15px; font-size: 24px; font-weight: bold; cursor: pointer; background: linear-gradient(to bottom, #ffdf00, #d4af37); color: #000; border: none; border-radius: 50px; width: 100%; box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3); margin-bottom: 15px;}
         .spin-btn:disabled { background: #555; cursor: not-allowed; }
         
         .admin-only { display: none; }
@@ -49,42 +34,21 @@
         .history-list { list-style: none; padding: 0; max-height: 150px; overflow-y: auto; font-size: 13px; margin: 0; }
         .history-list li { background: #222; margin-bottom: 5px; padding: 8px; border-radius: 5px; border-left: 3px solid #ffd700; }
         .kick-btn { background: #dc3545; color: white; border: none; padding: 3px 10px; border-radius: 3px; font-size: 11px; float: right; cursor: pointer; font-weight: bold; }
-        
-        #audioBtn { position: fixed; top: 10px; right: 10px; background: #ff4500; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; z-index: 1000; box-shadow: 0 0 10px rgba(255, 69, 0, 0.5); }
     </style>
-    
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
 </head>
 <body>
 
 <audio id="spinSnd" src="https://actions.google.com/sounds/v1/science_fiction/pulsating_hum.ogg" preload="auto"></audio>
 <audio id="winSnd" src="https://actions.google.com/sounds/v1/human/applause_and_cheering.ogg" preload="auto"></audio>
 
-<button id="audioBtn" onclick="unlockAudio()">🔊 AKTYWUJ DŹWIĘK KASYNA</button>
-
 <div class="casino-container">
     <h1>🎰 Intelektualny Jackpot</h1>
 
     <div id="loginOverlay">
-        <p style="color:#aaa; margin-bottom: 20px;">Wybierz metodę wejścia do kasyna:</p>
+        <p style="color:#aaa; margin-bottom: 20px;">Autoryzacja serwera kasyna...</p>
         
-        <button id="discordLoginBtn" class="action-btn" style="background:#5865F2; padding:15px; font-size:16px; border-radius: 50px;" onclick="discordLogin()">1. ZALOGUJ PRZEZ DISCORD (Przeglądarka)</button>
-        
-        <div style="margin-top:25px; border-top: 1px dashed #555; padding-top: 20px;">
-            <p style="font-size: 14px; color: #ffd700; margin-bottom: 10px;">2. Grasz wewnątrz Discorda (Rakieta)? Wejdź ręcznie:</p>
-            <input type="text" id="manualNick" placeholder="Twój nick na serwerze..." style="text-align: center;">
-            
-            <div style="margin-bottom: 15px; margin-top: 10px; text-align: center;">
-                <label style="cursor: pointer; font-size: 16px;">
-                    <input type="checkbox" id="adminCheck" onchange="toggleAdminPin()"> Jestem Hostem
-                </label>
-            </div>
-            
-            <input type="password" id="adminPin" placeholder="PIN Hosta (Wpisz: 777)" class="hidden" style="text-align: center; border-color: #dc3545;">
-            
-            <button class="action-btn" style="background:#28a745; padding: 12px; font-size: 16px; border-radius: 50px;" onclick="manualLogin()">WEJDŹ DO KASYNA</button>
-        </div>
+        <a id="discordLoginBtn" href="#" target="_blank" class="action-btn" style="background:#5865F2; padding:15px 30px; font-size:16px; border-radius: 50px; text-decoration: none; display: inline-block; box-sizing: border-box;" onclick="openDiscordAuth()">ZALOGUJ PRZEZ DISCORD</a>
+        <p style="font-size: 11px; color: #777; margin-top: 15px;">Jeśli logujesz się z wewnątrz Discorda, otworzy się nowe okno przeglądarki.</p>
     </div>
 
     <div id="mainApp" class="hidden">
@@ -105,7 +69,7 @@
         </div>
 
         <button id="spinBtn" class="spin-btn" onclick="drawJackpot()">LOSUJ!</button>
-        <div id="winnerTopic" style="margin-top:15px; font-size:18px; font-weight:bold; color:#4CAF50; text-shadow: 0 0 5px #000;"></div>
+        <div id="winnerTopic" style="margin-top:10px; font-size:18px; font-weight:bold; color:#4CAF50; text-shadow: 0 0 5px #000;"></div>
 
         <div class="panel-grid">
             <div class="panel">
@@ -122,22 +86,6 @@
             </div>
         </div>
 
-        <div class="panel admin-only" style="border-color:#007bff; background:rgba(0,123,255,0.05); margin-top:15px;">
-            <h4 style="margin:0 0 10px 0; color:#5bc0de;">🏦 SKARBIEC I BOTY</h4>
-            <select id="adminTopicSelect"></select>
-            <div style="display: flex; gap: 5px; margin-bottom: 10px;">
-                <button class="action-btn" style="background:#007bff;" onclick="pushBankTopic()">Użyj ze skarbca</button>
-                <button class="action-btn" style="background:#dc3545;" onclick="deleteBankTopic()">Usuń</button>
-            </div>
-            <input type="text" id="botName" placeholder="Imię bota...">
-            <button class="action-btn" style="background:#6f42c1;" onclick="addBot()">🤖 Dodaj bota</button>
-        </div>
-
-        <div class="panel admin-only" style="border-color:#dc3545; margin-top:15px;">
-            <h4 style="margin:0 0 10px 0; color:#dc3545;">🛑 BANY</h4>
-            <ul class="history-list" id="banList"></ul>
-        </div>
-        
         <div class="panel" style="margin-top:15px;">
             <h3>📜 Historia losowań</h3>
             <ul class="history-list" id="historyList"></ul>
@@ -145,117 +93,59 @@
     </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.8.1/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.8.1/firebase-database-compat.min.js"></script>
+
 <script>
     const CLIENT_ID = "1477107560988414067";
     const REDIRECT = window.location.origin + window.location.pathname;
     
-    let db = null;
+    firebase.initializeApp({
+        apiKey: "AIzaSyBu8MIxIAAYwYnDEofUE4mZep7cor5MlFM",
+        databaseURL: "https://intelektualny-jackpot-default-rtdb.europe-west1.firebasedatabase.app"
+    });
+    const db = firebase.database();
+
     let me = null, myID = null, isAdmin = false;
-    let players = [], pData = [], topics = [], bank = [], banned = {};
+    let players = [], pData = [], topics = [];
 
-    // 1. BEZPIECZNE FUNKCJE INTERFEJSU (Zawsze działają)
-    function unlockAudio() {
-        const s1 = document.getElementById('spinSnd');
-        const s2 = document.getElementById('winSnd');
-        s1.play().then(() => s1.pause()).catch(e => console.log(e));
-        s2.play().then(() => s2.pause()).catch(e => console.log(e));
-        document.getElementById('audioBtn').style.display = 'none';
+    // Funkcja otwierająca autoryzację Discorda
+    function openDiscordAuth() {
+        const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT)}&response_type=token&scope=identify`;
+        // Próba otwarcia w tej samej ramce (jeśli zadziała) lub ustawione na linku target="_blank" wymusi nowe okno.
+        window.location.href = authUrl;
     }
 
-    function toggleAdminPin() {
-        const pinField = document.getElementById('adminPin');
-        if (document.getElementById('adminCheck').checked) {
-            pinField.classList.remove('hidden');
-        } else {
-            pinField.classList.add('hidden');
-        }
-    }
-
-    function toggleDM() { 
-        document.getElementById('dmOpt').classList.toggle('hidden', document.querySelector('input[name="mode"]:checked').value === 'versus'); 
-    }
-
-    // 2. FUNKCJE LOGOWANIA
-    function discordLogin() {
-        window.top.location.href = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT)}&response_type=token&scope=identify`;
-    }
-
-    function manualLogin() {
-        const nick = document.getElementById('manualNick').value.trim();
-        const isHost = document.getElementById('adminCheck').checked;
-        const pin = document.getElementById('adminPin').value.trim();
-
-        if(!nick) return alert("Podaj swój nick!");
-        
-        if (isHost && pin !== "777") {
-            return alert("Błędny PIN Hosta!");
-        }
-
-        // Dopiero teraz próbujemy odpalić bazę danych
-        if (!connectFirebase()) return;
-
-        me = nick;
-        myID = "MANUAL_" + Date.now();
-        
-        if (isHost) {
-            isAdmin = true;
-            document.body.classList.add('is-admin');
-        }
-        enterApp();
-    }
-
-    // Automatyczne logowanie przez URL (jeśli ktoś użył przycisku Discord)
     window.onload = () => {
+        // Dodatkowe obejście: Ustawienie linku bezpośrednio w przycisku (dla ominięcia restrykcji JS iframów)
+        document.getElementById('discordLoginBtn').href = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT)}&response_type=token&scope=identify`;
+
         const hash = new URLSearchParams(window.location.hash.slice(1));
         const token = hash.get('access_token');
         
         if (token) {
+            document.getElementById('discordLoginBtn').classList.add('hidden');
             fetch('https://discord.com/api/users/@me', { headers: { authorization: `Bearer ${token}` } })
             .then(r => r.json()).then(user => {
                 if(!user.id) return;
+                me = user.global_name || user.username; myID = user.id;
                 
-                if (!connectFirebase()) return;
-
-                me = user.global_name || user.username; 
-                myID = user.id;
+                // Nadanie uprawnień Hosta
                 if (myID === "767437050513063946") {
                     isAdmin = true;
                     document.body.classList.add('is-admin');
                 }
-                enterApp();
-            }).catch(e => console.log(e));
+                
+                document.getElementById('loginOverlay').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                document.getElementById('userName').innerText = me;
+                initDB();
+            }).catch(e => console.log("Błąd autoryzacji: ", e));
+        } else {
+            document.getElementById('discordLoginBtn').classList.remove('hidden');
         }
     };
 
-    // 3. ŁĄCZENIE Z BAZĄ (Zabezpieczone)
-    function connectFirebase() {
-        try {
-            if (typeof firebase === 'undefined') {
-                alert("Błąd: Moduł bazy danych został zablokowany przez przeglądarkę/Discorda.");
-                return false;
-            }
-            if (!firebase.apps.length) {
-                firebase.initializeApp({
-                    apiKey: "AIzaSyBu8MIxIAAYwYnDEofUE4mZep7cor5MlFM",
-                    databaseURL: "https://intelektualny-jackpot-default-rtdb.europe-west1.firebasedatabase.app"
-                });
-            }
-            db = firebase.database();
-            return true;
-        } catch (error) {
-            alert("Nie udało się połączyć z bazą: " + error.message);
-            return false;
-        }
-    }
-
-    function enterApp() {
-        document.getElementById('loginOverlay').classList.add('hidden');
-        document.getElementById('mainApp').classList.remove('hidden');
-        document.getElementById('userName').innerText = me;
-        initDB();
-    }
-
-    // 4. LOGIKA KASYNA
     function initDB() {
         db.ref('discord_players').on('value', s => {
             pData = []; players = [];
@@ -265,16 +155,6 @@
         db.ref('discord_topics').on('value', s => { 
             topics = []; s.forEach(c => topics.push(c.val())); 
             document.getElementById('tCount').innerText = topics.length; 
-        });
-        db.ref('discord_adminBank').on('value', s => {
-            bank = []; const sel = document.getElementById('adminTopicSelect'); 
-            let h = '<option value="">-- Wybierz ze skarbca --</option>';
-            s.forEach(c => { bank.push({k: c.key, text: c.val().text}); h += `<option value="${c.key}">${c.val().text}</option>`; });
-            sel.innerHTML = h;
-        });
-        db.ref('discord_bans').on('value', s => {
-            banned = s.val() || {};
-            document.getElementById('banList').innerHTML = Object.keys(banned).map(id => `<li>🛑 ${banned[id]} <button class="kick-btn" style="background:#28a745;" onclick="db.ref('discord_bans/${id}').remove()">Odbanuj</button></li>`).join("");
         });
         db.ref('discord_history').on('value', s => {
             const h = document.getElementById('historyList'); h.innerHTML = "";
@@ -296,6 +176,10 @@
         const s2 = document.getElementById('winSnd');
         btn.disabled = true;
 
+        // Puszczenie dźwięków - musi być odpalone bezpośrednio po kliknięciu!
+        s1.loop = true; 
+        s1.play().catch(e => console.log("Przeglądarka blokuje autoplay audio: ", e));
+
         const winPlayers = players.sort(() => 0.5 - Math.random()).slice(0, count).join(" VS ");
         let html = "";
         for(let i=0; i<30; i++) html += `<div class="reel-item">${players[Math.floor(Math.random()*players.length)]}</div>`;
@@ -308,10 +192,9 @@
             reel.style.transition = "transform 4s cubic-bezier(0.1, 0, 0.1, 1)";
             reel.style.transform = `translateY(-${30 * 120}px)`;
             
-            s1.loop = true; s1.play().catch(e => console.log("Audio zablokowane"));
-
             setTimeout(() => {
-                s1.pause(); s1.currentTime = 0; s2.play().catch(e => console.log("Audio zablokowane"));
+                s1.pause(); s1.currentTime = 0; 
+                s2.play().catch(e => console.log("Przeglądarka blokuje autoplay audio: ", e));
                 
                 const t = topics[Math.floor(Math.random()*topics.length)];
                 document.getElementById('winnerTopic').innerText = `TEMAT: "${t.text}" (${t.author})`;
@@ -323,14 +206,9 @@
 
     function renderPlayers() {
         document.getElementById('pCount').innerText = players.length;
-        document.getElementById('pList').innerHTML = pData.map(p => `<li>👤 ${p.n} ${isAdmin ? `<button class="kick-btn" onclick="if(confirm('Zbanować ${p.n}?')) {db.ref('discord_bans/${p.id}').set('${p.n}'); db.ref('discord_players/${p.k}').remove();}">BAN</button>` : ''}</li>`).join("");
+        document.getElementById('pList').innerHTML = pData.map(p => `<li>👤 ${p.n} ${isAdmin ? `<button class="kick-btn" onclick="if(confirm('Zbanować ${p.n}?')) { db.ref('discord_players/${p.k}').remove(); }">WYRZUĆ</button>` : ''}</li>`).join("");
     }
 
-    function joinGame() { if(banned[myID]) return alert("Jesteś zbanowany!"); if(players.includes(me)) return alert("Już jesteś w puli!"); db.ref('discord_players').push({name: me, id: myID}); }
-    function addBot() { const n = document.getElementById('botName').value.trim(); if(n) { db.ref('discord_players').push({name: "🤖 " + n, id: "BOT_" + Date.now()}); document.getElementById('botName').value = ""; } }
-    function addTopic() { const t = document.getElementById('newTopic').value.trim(); if(t) { db.ref('discord_topics').push({author: me, text: t}); db.ref('discord_adminBank').push({author: me, text: t}); document.getElementById('newTopic').value = ""; } }
-    function pushBankTopic() { const k = document.getElementById('adminTopicSelect').value; if(k) { const topicText = bank.find(x => x.k === k).text; db.ref('discord_topics').push({author: "HOST", text: topicText}); } }
-    function deleteBankTopic() { const k = document.getElementById('adminTopicSelect').value; if(k && confirm("Usunąć ten temat ze skarbca bezpowrotnie?")) db.ref('discord_adminBank/' + k).remove(); }
-</script>
-</body>
-</html>
+    function joinGame() { if(players.includes(me)) return alert("Już jesteś w puli!"); db.ref('discord_players').push({name: me, id: myID}); }
+    function addTopic() { const t = document.getElementById('newTopic').value.trim(); if(t) { db.ref('discord_topics').push({author: me, text: t}); document.getElementById('newTopic').value = ""; } }
+    function toggleDM()
