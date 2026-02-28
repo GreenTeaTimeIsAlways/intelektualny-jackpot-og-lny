@@ -24,13 +24,13 @@
         .reel { position: absolute; top: 0; left: 0; width: 100%; transition: transform 4s cubic-bezier(0.1, 0, 0.1, 1); }
         .reel-item { height: 120px; line-height: 120px; font-size: 26px; font-weight: bold; color: #fff; text-transform: uppercase; text-shadow: 0 0 10px #ffd700; }
 
-        /* Układ poziomy Versus i DM */
+        /* Układ poziomy */
         .settings-row {
             display: flex; flex-direction: row; justify-content: center; align-items: center;
             gap: 30px; margin: 15px 0; background: rgba(0,0,0,0.4); padding: 12px; border-radius: 10px; border: 1px solid #333;
         }
         .settings-row label { display: flex; align-items: center; gap: 10px; font-size: 18px; cursor: pointer; font-weight: bold; }
-        .settings-row input[type="radio"] { width: 20px; height: 20px; cursor: pointer; }
+        .settings-row input[type="radio"], .settings-row input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; }
 
         .panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
         @media (max-width: 600px) { .panel-grid { grid-template-columns: 1fr; } }
@@ -52,6 +52,9 @@
         
         #audioBtn { position: fixed; top: 10px; right: 10px; background: #ff4500; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; z-index: 1000; box-shadow: 0 0 10px rgba(255, 69, 0, 0.5); }
     </style>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -64,17 +67,22 @@
     <h1>🎰 Intelektualny Jackpot</h1>
 
     <div id="loginOverlay">
-        <p style="color:#aaa; margin-bottom: 20px;">Wybierz metodę autoryzacji:</p>
+        <p style="color:#aaa; margin-bottom: 20px;">Wybierz metodę wejścia do kasyna:</p>
         
-        <button id="discordLoginBtn" class="action-btn" style="background:#5865F2; padding:15px; font-size:16px; border-radius: 50px;" onclick="discordLogin()">ZALOGUJ PRZEZ DISCORD (Przeglądarka)</button>
+        <button id="discordLoginBtn" class="action-btn" style="background:#5865F2; padding:15px; font-size:16px; border-radius: 50px;" onclick="discordLogin()">1. ZALOGUJ PRZEZ DISCORD (Przeglądarka)</button>
         
         <div style="margin-top:25px; border-top: 1px dashed #555; padding-top: 20px;">
-            <p style="font-size: 14px; color: #ffd700; margin-bottom: 10px;">Grasz wewnątrz Discorda? Wejdź ręcznie:</p>
+            <p style="font-size: 14px; color: #ffd700; margin-bottom: 10px;">2. Grasz wewnątrz Discorda (Rakieta)? Wejdź ręcznie:</p>
             <input type="text" id="manualNick" placeholder="Twój nick na serwerze..." style="text-align: center;">
-            <div style="margin-bottom: 10px; text-align: left;">
-                <label style="cursor: pointer; font-size: 14px;"><input type="checkbox" id="adminCheck" onchange="document.getElementById('adminPin').classList.toggle('hidden')"> Jestem Hostem</label>
+            
+            <div style="margin-bottom: 15px; margin-top: 10px; text-align: center;">
+                <label style="cursor: pointer; font-size: 16px;">
+                    <input type="checkbox" id="adminCheck" onchange="toggleAdminPin()"> Jestem Hostem
+                </label>
             </div>
+            
             <input type="password" id="adminPin" placeholder="PIN Hosta (Wpisz: 777)" class="hidden" style="text-align: center; border-color: #dc3545;">
+            
             <button class="action-btn" style="background:#28a745; padding: 12px; font-size: 16px; border-radius: 50px;" onclick="manualLogin()">WEJDŹ DO KASYNA</button>
         </div>
     </div>
@@ -137,13 +145,15 @@
     </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.8.1/firebase-app-compat.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.8.1/firebase-database-compat.min.js"></script>
-
 <script>
     const CLIENT_ID = "1477107560988414067";
     const REDIRECT = window.location.origin + window.location.pathname;
+    
+    let db = null;
+    let me = null, myID = null, isAdmin = false;
+    let players = [], pData = [], topics = [], bank = [], banned = {};
 
+    // 1. BEZPIECZNE FUNKCJE INTERFEJSU (Zawsze działają)
     function unlockAudio() {
         const s1 = document.getElementById('spinSnd');
         const s2 = document.getElementById('winSnd');
@@ -152,30 +162,20 @@
         document.getElementById('audioBtn').style.display = 'none';
     }
 
-    firebase.initializeApp({
-        apiKey: "AIzaSyBu8MIxIAAYwYnDEofUE4mZep7cor5MlFM",
-        databaseURL: "https://intelektualny-jackpot-default-rtdb.europe-west1.firebasedatabase.app"
-    });
-    const db = firebase.database();
-
-    let me = null, myID = null, isAdmin = false;
-    let players = [], pData = [], topics = [], bank = [], banned = {};
-
-    window.onload = () => {
-        const hash = new URLSearchParams(window.location.hash.slice(1));
-        const token = hash.get('access_token');
-        
-        if (token) {
-            fetch('https://discord.com/api/users/@me', { headers: { authorization: `Bearer ${token}` } })
-            .then(r => r.json()).then(user => {
-                if(!user.id) return;
-                me = user.global_name || user.username; myID = user.id;
-                if (myID === "767437050513063946") grantAdmin();
-                enterApp();
-            }).catch(e => console.log(e));
+    function toggleAdminPin() {
+        const pinField = document.getElementById('adminPin');
+        if (document.getElementById('adminCheck').checked) {
+            pinField.classList.remove('hidden');
+        } else {
+            pinField.classList.add('hidden');
         }
-    };
+    }
 
+    function toggleDM() { 
+        document.getElementById('dmOpt').classList.toggle('hidden', document.querySelector('input[name="mode"]:checked').value === 'versus'); 
+    }
+
+    // 2. FUNKCJE LOGOWANIA
     function discordLogin() {
         window.top.location.href = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT)}&response_type=token&scope=identify`;
     }
@@ -187,19 +187,65 @@
 
         if(!nick) return alert("Podaj swój nick!");
         
+        if (isHost && pin !== "777") {
+            return alert("Błędny PIN Hosta!");
+        }
+
+        // Dopiero teraz próbujemy odpalić bazę danych
+        if (!connectFirebase()) return;
+
         me = nick;
         myID = "MANUAL_" + Date.now();
         
         if (isHost) {
-            if (pin === "777") grantAdmin();
-            else return alert("Błędny PIN Hosta!");
+            isAdmin = true;
+            document.body.classList.add('is-admin');
         }
         enterApp();
     }
 
-    function grantAdmin() {
-        isAdmin = true;
-        document.body.classList.add('is-admin');
+    // Automatyczne logowanie przez URL (jeśli ktoś użył przycisku Discord)
+    window.onload = () => {
+        const hash = new URLSearchParams(window.location.hash.slice(1));
+        const token = hash.get('access_token');
+        
+        if (token) {
+            fetch('https://discord.com/api/users/@me', { headers: { authorization: `Bearer ${token}` } })
+            .then(r => r.json()).then(user => {
+                if(!user.id) return;
+                
+                if (!connectFirebase()) return;
+
+                me = user.global_name || user.username; 
+                myID = user.id;
+                if (myID === "767437050513063946") {
+                    isAdmin = true;
+                    document.body.classList.add('is-admin');
+                }
+                enterApp();
+            }).catch(e => console.log(e));
+        }
+    };
+
+    // 3. ŁĄCZENIE Z BAZĄ (Zabezpieczone)
+    function connectFirebase() {
+        try {
+            if (typeof firebase === 'undefined') {
+                alert("Błąd: Moduł bazy danych został zablokowany przez przeglądarkę/Discorda.");
+                return false;
+            }
+            if (!firebase.apps.length) {
+                firebase.initializeApp({
+                    apiKey: "AIzaSyBu8MIxIAAYwYnDEofUE4mZep7cor5MlFM",
+                    databaseURL: "https://intelektualny-jackpot-default-rtdb.europe-west1.firebasedatabase.app"
+                });
+            }
+            db = firebase.database();
+            return true;
+        } catch (error) {
+            alert("Nie udało się połączyć z bazą: " + error.message);
+            return false;
+        }
     }
 
     function enterApp() {
@@ -209,15 +255,20 @@
         initDB();
     }
 
+    // 4. LOGIKA KASYNA
     function initDB() {
         db.ref('discord_players').on('value', s => {
             pData = []; players = [];
             s.forEach(c => { pData.push({k: c.key, n: c.val().name, id: c.val().id}); players.push(c.val().name); });
             renderPlayers();
         });
-        db.ref('discord_topics').on('value', s => { topics = []; s.forEach(c => topics.push(c.val())); document.getElementById('tCount').innerText = topics.length; });
+        db.ref('discord_topics').on('value', s => { 
+            topics = []; s.forEach(c => topics.push(c.val())); 
+            document.getElementById('tCount').innerText = topics.length; 
+        });
         db.ref('discord_adminBank').on('value', s => {
-            bank = []; const sel = document.getElementById('adminTopicSelect'); let h = '<option value="">-- Wybierz ze skarbca --</option>';
+            bank = []; const sel = document.getElementById('adminTopicSelect'); 
+            let h = '<option value="">-- Wybierz ze skarbca --</option>';
             s.forEach(c => { bank.push({k: c.key, text: c.val().text}); h += `<option value="${c.key}">${c.val().text}</option>`; });
             sel.innerHTML = h;
         });
@@ -278,7 +329,6 @@
     function joinGame() { if(banned[myID]) return alert("Jesteś zbanowany!"); if(players.includes(me)) return alert("Już jesteś w puli!"); db.ref('discord_players').push({name: me, id: myID}); }
     function addBot() { const n = document.getElementById('botName').value.trim(); if(n) { db.ref('discord_players').push({name: "🤖 " + n, id: "BOT_" + Date.now()}); document.getElementById('botName').value = ""; } }
     function addTopic() { const t = document.getElementById('newTopic').value.trim(); if(t) { db.ref('discord_topics').push({author: me, text: t}); db.ref('discord_adminBank').push({author: me, text: t}); document.getElementById('newTopic').value = ""; } }
-    function toggleDM() { document.getElementById('dmOpt').classList.toggle('hidden', document.querySelector('input[name="mode"]:checked').value === 'versus'); }
     function pushBankTopic() { const k = document.getElementById('adminTopicSelect').value; if(k) { const topicText = bank.find(x => x.k === k).text; db.ref('discord_topics').push({author: "HOST", text: topicText}); } }
     function deleteBankTopic() { const k = document.getElementById('adminTopicSelect').value; if(k && confirm("Usunąć ten temat ze skarbca bezpowrotnie?")) db.ref('discord_adminBank/' + k).remove(); }
 </script>
