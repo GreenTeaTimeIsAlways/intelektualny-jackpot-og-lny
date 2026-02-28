@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Intelektualny Jackpot - Discord Live 🔴</title>
     <style>
+        /* Stylistyka Kasyna - Vegas Theme */
         body {
             background-color: #0a1a12;
             color: #ffd700;
@@ -36,13 +37,22 @@
 
         /* --- MASZYNA LOSUJĄCA (SLOT) --- */
         .slot-machine-wrapper {
-            background: linear-gradient(145deg, #2a2a2a, #111); padding: 15px; border-radius: 15px;
-            border: 4px solid #8b6508; box-shadow: 0 10px 20px rgba(0,0,0,0.6), inset 0 0 15px rgba(255, 215, 0, 0.1);
-            margin: 25px 0; position: relative;
+            background: linear-gradient(145deg, #2a2a2a, #111);
+            padding: 15px;
+            border-radius: 15px;
+            border: 4px solid #8b6508;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.6), inset 0 0 15px rgba(255, 215, 0, 0.1);
+            margin: 25px 0;
+            position: relative;
         }
         .slot-machine-view {
-            height: 100px; background: #000411; border: 3px solid #00f3ff; border-radius: 8px;
-            position: relative; overflow: hidden; box-shadow: inset 0 0 25px #000;
+            height: 100px;
+            background: #000411; 
+            border: 3px solid #00f3ff; 
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 25px #000;
         }
         .slot-machine-view::before, .slot-machine-view::after {
             content: ""; position: absolute; left: 0; width: 100%; height: 25px; z-index: 2;
@@ -54,7 +64,10 @@
             background: rgba(255, 0, 0, 0.7); transform: translateY(-50%); z-index: 3; box-shadow: 0 0 10px red;
         }
         .reel { position: absolute; top: 0; left: 0; width: 100%; transition: transform 4s cubic-bezier(0.1, 0, 0.1, 1); }
-        .reel-item { height: 100px; line-height: 100px; font-size: 26px; font-weight: bold; color: #00f3ff; text-transform: uppercase; text-shadow: 0 0 10px #00f3ff; }
+        .reel-item { 
+            height: 100px; line-height: 100px; font-size: 26px; font-weight: bold; 
+            color: #00f3ff; text-transform: uppercase; text-shadow: 0 0 10px #00f3ff; 
+        }
 
         /* --- UKŁAD POZIOMY (TRYBY GRY) --- */
         .settings-panel { 
@@ -74,13 +87,14 @@
             box-shadow: 0 0 15px rgba(255, 69, 0, 0.6); font-size: 14px;
         }
 
+        /* Pozostałe elementy */
         #loginOverlay { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 60vh; }
         .discord-btn { background-color: #5865F2; color: white; padding: 15px 30px; font-size: 18px; font-weight: bold; text-decoration: none; border-radius: 8px; display: inline-flex; align-items: center; gap: 10px; transition: background 0.3s; margin-top: 20px; border: none; cursor: pointer; }
         .discord-btn:hover { background-color: #4752C4; }
         .user-profile { display: flex; align-items: center; justify-content: center; gap: 10px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; margin-bottom: 20px; border: 1px dashed #5865F2; }
         .panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
         @media (max-width: 600px) { .panel-grid { grid-template-columns: 1fr; } }
-        .panel { background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 10px; border: 1px solid #555; text-align: left; }
+        .panel { background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 10px; border: 1px solid #555; text-align: left; position: relative; }
         .panel h3 { margin-top: 0; color: #ccc; font-size: 16px; border-bottom: 1px solid #444; padding-bottom: 5px; }
         input[type="text"], input[type="number"], select { width: 100%; padding: 10px; margin-bottom: 10px; border: 2px solid #ffd700; background: #222; color: white; border-radius: 5px; box-sizing: border-box; outline: none; }
         button.action-btn { width: 100%; padding: 8px; background: #28a745; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin-bottom: 5px; }
@@ -190,7 +204,7 @@
             </div>
 
             <div class="panel admin-only admin-bank-panel" style="margin-bottom: 25px;">
-                <h3>🏦 Skarbiec Tematów (Admin)</h3>
+                <h3>🏦 Skarbiec Tematów i Boty (Admin)</h3>
                 <select id="adminTopicSelect">
                     <option value="">-- Wybierz temat ze skarbca --</option>
                 </select>
@@ -202,6 +216,11 @@
                     <input type="text" id="adminNewTopic" placeholder="Wpisz temat prosto do banku...">
                     <button class="action-btn btn-blue" onclick="createBankTopic()">Zapisz w banku</button>
                 </div>
+                
+                <div style="margin-top: 15px; border-top: 1px dashed #444; padding-top: 10px;">
+                    <input type="text" id="botNameInput" placeholder="Wpisz imię bota...">
+                    <button class="action-btn" style="background:#6f42c1;" onclick="addBot()">🤖 Dodaj bota</button>
+                </div>
             </div>
 
             <div class="panel admin-only" style="margin-bottom: 25px; border-color: #dc3545;">
@@ -210,7 +229,7 @@
             </div>
 
             <div class="panel">
-                <h3>📜 Historia Losowań (Live)</h3>
+                <h3>📜 Historia Losowań (Live) <button class="action-btn clear-btn admin-only" style="width: auto; float: right; padding: 3px 10px; margin-top: -3px; font-size: 11px;" onclick="clearHistory()">🗑️ Wyczyść</button></h3>
                 <ul class="history-list" id="historyList"></ul>
             </div>
         </div>
@@ -225,7 +244,6 @@
             document.getElementById('audioUnlockBtn').style.display = 'none';
         }
 
-        // Tuta są wpisane PRAWIDŁOWE ID - nie ruszaj ich!
         const ADMIN_DISCORD_ID = "767437050513063946"; 
         const CLIENT_ID = "1477107560988414067";
         const REDIRECT_URI = "https://greenteatimeisalways.github.io/intelektualny-jackpot-og-lny/";
@@ -298,6 +316,15 @@
             db.ref('discord_players').push({ name: currentDiscordUser, id: currentDiscordID });
         }
 
+        // --- FUNKCJA DODAWANIA BOTA (PRZYWRÓCONA) ---
+        function addBot() {
+            const name = document.getElementById('botNameInput').value.trim();
+            if(name) {
+                db.ref('discord_players').push({ name: "🤖 " + name, id: "BOT_" + Date.now() });
+                document.getElementById('botNameInput').value = "";
+            }
+        }
+
         function banPlayer(key, id, name) {
             if(confirm(`Ban ${name}?`)) { db.ref('discord_bans/' + id).set(name); db.ref('discord_players/' + key).remove(); }
         }
@@ -365,8 +392,11 @@
         window.createBankTopic = () => { const t = document.getElementById('adminNewTopic').value.trim(); if(t) db.ref('discord_adminBank').push({author: "ADMIN", text: t}); document.getElementById('adminNewTopic').value = ""; };
         window.pushBankTopic = () => { const k = document.getElementById('adminTopicSelect').value; if(k) db.ref('discord_topics').push({author: "ADMIN", text: bankTopicsData.find(x => x.key === k).text}); };
         window.deleteBankTopic = () => { const k = document.getElementById('adminTopicSelect').value; if(k) db.ref('discord_adminBank/' + k).remove(); };
-        window.clearPlayers = () => { if(confirm("Wyczyścić?")) db.ref('discord_players').remove(); };
-        window.clearTopics = () => { if(confirm("Wyczyścić?")) db.ref('discord_topics').remove(); };
+        window.clearPlayers = () => { if(confirm("Wyczyścić listę graczy?")) db.ref('discord_players').remove(); };
+        window.clearTopics = () => { if(confirm("Wyczyścić pulę tematów?")) db.ref('discord_topics').remove(); };
+        
+        // --- FUNKCJA CZYSZCZENIA HISTORII (NOWOŚĆ) ---
+        window.clearHistory = () => { if(confirm("Wyczyścić historię losowań?")) db.ref('discord_history').remove(); };
     </script>
 </body>
 </html>
