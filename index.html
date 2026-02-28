@@ -3,118 +3,328 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Intellectual Jackpot 🎰</title>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.8.1/firebase-app-compat.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/10.8.1/firebase-database-compat.min.js"></script>
-
+    <title>Intellectual Jackpot</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&display=swap');
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-purple: #b026ff;
+            --gold: #ffcf54;
+            --bg-dark: #12151f;
+            --panel-bg: #1e2336;
+        }
 
         body {
-            background-color: #050b14; color: #fff; font-family: 'Segoe UI', Tahoma, sans-serif;
-            display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0;
-            background-image: radial-gradient(circle at center, #112240 0%, #02040a 100%);
-            padding: 20px; box-sizing: border-box;
+            background-color: var(--bg-dark);
+            color: white;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-image: radial-gradient(circle, #1a1e2e 0%, #0a0c13 100%);
         }
 
-        /* GŁÓWNA MASZYNA - Wygląd nawiązujący do zdjęcia */
-        .slot-machine {
-            background: linear-gradient(135deg, #4b5363 0%, #2a2d34 50%, #1c1e22 100%);
-            border: 8px solid #8c92a0;
-            border-radius: 25px 25px 15px 15px;
-            padding: 25px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,0,0,0.5), 0 0 15px rgba(0, 255, 255, 0.2);
+        .machine-container {
+            background: var(--panel-bg);
+            border: 4px solid var(--gold);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 0 20px var(--neon-blue), inset 0 0 20px var(--neon-purple);
+            width: 90%;
             max-width: 800px;
-            width: 100%;
-            position: relative;
+            text-align: center;
         }
 
-        /* Dekoracyjne neony boczne */
-        .slot-machine::before, .slot-machine::after {
-            content: ''; position: absolute; top: 10%; bottom: 10%; width: 10px;
-            background: #fff; border-radius: 5px; box-shadow: 0 0 15px #0ff, 0 0 30px #0ff;
-        }
-        .slot-machine::before { left: -5px; }
-        .slot-machine::after { right: -5px; }
-
-        /* Szyld u góry */
-        .neon-sign {
-            font-family: 'Oswald', sans-serif; text-align: center; font-size: 38px; font-weight: 700;
-            color: #fff; text-transform: uppercase; margin-top: -10px; margin-bottom: 15px;
-            text-shadow: 0 0 5px #ff00ff, 0 0 10px #ff00ff, 0 0 20px #ff00ff, 0 0 40px #ff00ff;
-            letter-spacing: 2px;
+        h1 {
+            color: var(--gold);
+            text-transform: uppercase;
+            text-shadow: 0 0 10px var(--gold), 0 0 20px #ff9d00;
+            font-size: 2.5em;
+            margin-bottom: 5px;
         }
 
-        /* Ekran z pulą */
-        .grand-payout {
-            background: #000; color: #0ff; text-align: center; font-family: monospace; font-size: 20px;
-            padding: 10px; border: 3px solid #0ff; border-radius: 8px; margin-bottom: 20px;
-            box-shadow: inset 0 0 15px rgba(0,255,255,0.4), 0 0 10px rgba(0,255,255,0.4);
-            text-shadow: 0 0 5px #0ff; letter-spacing: 1px;
+        .screen {
+            background: #050814;
+            border: 2px solid var(--neon-blue);
+            border-radius: 10px;
+            height: 150px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 15px var(--neon-blue);
+            font-size: 1.5em;
+            color: var(--neon-blue);
+            text-shadow: 0 0 5px var(--neon-blue);
+            overflow: hidden;
+            flex-direction: column;
         }
 
-        /* 3 BĘBNY (Zamiast jednego) */
-        .reels-container {
-            display: flex; gap: 15px; background: #111; padding: 20px; border-radius: 12px;
-            border: 5px solid #d4af37; box-shadow: inset 0 0 30px #000, 0 0 15px rgba(212, 175, 55, 0.5);
-            margin-bottom: 25px;
-        }
-        .reel-window {
-            flex: 1; height: 160px; background: #000; border-radius: 8px; position: relative;
-            overflow: hidden; border: 2px solid #555;
-            box-shadow: inset 0 0 20px rgba(0, 150, 255, 0.4);
-        }
-        .reel-marker {
-            position: absolute; top: 50%; left: 0; width: 100%; height: 3px;
-            background: rgba(255, 0, 0, 0.7); transform: translateY(-50%); z-index: 3; box-shadow: 0 0 10px red;
-        }
-        .reel-strip { position: absolute; top: 0; left: 0; width: 100%; transition: transform 0s; }
-        .reel-item {
-            height: 160px; display: flex; align-items: center; justify-content: center; text-align: center;
-            font-size: 20px; font-weight: bold; color: #fff; text-shadow: 0 0 8px #0ff; padding: 0 10px;
+        .controls, .admin-panel, .topics-panel {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px dashed var(--neon-purple);
+            border-radius: 10px;
+            text-align: left;
         }
 
-        /* Przyciski na maszynie */
-        .machine-buttons { display: flex; justify-content: space-between; align-items: center; background: #222; padding: 15px; border-radius: 10px; border: 2px inset #555; margin-bottom: 20px; }
-        .settings-row { display: flex; gap: 20px; font-size: 16px; font-weight: bold; color: #d4af37; }
-        .settings-row label { cursor: pointer; display: flex; align-items: center; gap: 5px; }
-        .settings-row input[type="radio"] { cursor: pointer; transform: scale(1.2); }
+        button {
+            background: transparent;
+            color: var(--neon-blue);
+            border: 2px solid var(--neon-blue);
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: 0.3s;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: var(--neon-blue);
+            color: black;
+            box-shadow: 0 0 15px var(--neon-blue);
+        }
+
+        .btn-discord {
+            border-color: #5865F2;
+            color: #5865F2;
+        }
         
-        /* Wielki przycisk LOSUJ */
-        .spin-btn {
-            background: radial-gradient(circle, #ffdf00, #b8860b); color: #000; font-family: 'Oswald', sans-serif;
-            font-size: 28px; font-weight: bold; border: 4px solid #fff; border-radius: 50px;
-            padding: 15px 40px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.8), 0 0 20px #ffdf00;
-            text-transform: uppercase; transition: transform 0.1s, box-shadow 0.1s;
-        }
-        .spin-btn:active { transform: translateY(4px); box-shadow: 0 2px 5px rgba(0,0,0,0.8), 0 0 10px #ffdf00; }
-        .spin-btn:disabled { background: #555; box-shadow: none; color: #888; border-color: #444; cursor: not-allowed; }
-
-        /* Taca z wynikiem */
-        .payout-tray {
-            background: #111; color: #4CAF50; font-size: 22px; font-weight: bold; padding: 20px;
-            border-radius: 10px; border: 3px solid #555; border-bottom-width: 8px; text-align: center;
-            min-height: 30px; box-shadow: inset 0 10px 20px rgba(0,0,0,0.8); text-shadow: 0 0 10px #4CAF50;
+        .btn-discord:hover {
+            background: #5865F2;
+            box-shadow: 0 0 15px #5865F2;
+            color: white;
         }
 
-        /* EKRAN LOGOWANIA (INSERT COIN) */
-        #loginOverlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.9); z-index: 10; border-radius: 15px;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        input, select {
+            background: #0a0c13;
+            border: 1px solid var(--neon-purple);
+            color: white;
+            padding: 10px;
+            margin: 5px;
+            border-radius: 5px;
+            outline: none;
         }
-        .login-btn {
-            background: #5865F2; color: white; padding: 20px 40px; font-size: 24px; font-weight: bold;
-            border: none; border-radius: 50px; cursor: pointer; font-family: 'Oswald', sans-serif;
-            text-transform: uppercase; box-shadow: 0 0 20px #5865F2; transition: background 0.2s;
-        }
-        .login-btn:hover { background: #4752C4; }
 
-        /* Panele sterowania (poza maszyną) */
-        .panels-wrapper { max-width: 800px; width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 25px; }
-        @media (max-width: 600px) { .panels-wrapper { grid-template-columns: 1fr; } }
-        .panel { background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 10px; border: 1px solid #444; }
-        .panel h3 { margin-top: 0; color: #0ff; font-family: 'Oswald', sans-serif; letter-spacing: 1px; }
+        .history-list {
+            list-style: none;
+            padding: 0;
+            max-height: 150px;
+            overflow-y: auto;
+            color: #aaa;
+            font-size: 0.9em;
+        }
         
-        input[type="text"], input[type="number"], select { width: 100%; padding: 10px; margin-bottom: 10px; background: #000; border: 2px solid #555; color: #fff;
+        #user-info {
+            color: var(--gold);
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="machine-container">
+        <h1>Intellectual Jackpot</h1>
+        
+        <div id="auth-section">
+            <p>Zaloguj się, aby zagrać</p>
+            <button class="btn-discord" onclick="loginWithDiscord()">Zaloguj przez Discord</button>
+        </div>
+
+        <div id="game-section" style="display:none;">
+            <div id="user-info"></div>
+            
+            <div class="screen" id="slot-screen">
+                <div id="game-mode-display" style="font-size: 0.5em; color: var(--neon-purple); margin-bottom: 10px;">Tryb: 1vs1</div>
+                <div id="spin-result">Oczekiwanie na graczy...</div>
+            </div>
+
+            <div class="controls">
+                <input type="text" id="topic-input" placeholder="Wpisz swój temat (max 2)">
+                <button onclick="addTopic()">Dodaj temat</button>
+            </div>
+
+            <div class="topics-panel">
+                <h3>Historia Losowań (Na żywo)</h3>
+                <ul class="history-list" id="history-list"></ul>
+            </div>
+
+            <div class="admin-panel" id="admin-panel" style="display:none;">
+                <h3 style="color: var(--gold);">Panel Administratora</h3>
+                <button onclick="setGameMode('1vs1')">Tryb 1vs1</button>
+                <button onclick="setGameMode('deathmatch')">Tryb Deathmatch</button>
+                <button onclick="spinMachine()" style="border-color: var(--gold); color: var(--gold);">🎰 LOSUJ TEMAT</button>
+                <br>
+                <button onclick="clearHistory()" style="border-color: red; color: red;">Wyczyść Historię</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, push, onValue, remove, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // Twoja konfiguracja Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBu8MIxIAAYwYnDEofUE4mZep7cor5MlFM",
+            authDomain: "intelektualny-jackpot.firebaseapp.com",
+            databaseURL: "https://intelektualny-jackpot-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "intelektualny-jackpot",
+            storageBucket: "intelektualny-jackpot.firebasestorage.app",
+            messagingSenderId: "938726974898",
+            appId: "1:938726974898:web:0f99b1384efc952c9eb0ab",
+            measurementId: "G-JTM2SE87WZ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // --- KONFIGURACJA DISCORDA ---
+        const DISCORD_CLIENT_ID = "TUTAJ_WPISZ_SWOJ_CLIENT_ID_Z_DISCORDA"; // <--- ZMIEŃ TO!
+        const REDIRECT_URI = "https://greenteatimeisalways.github.io/intelektualny-jackpot-og-lny/";
+        const ADMIN_DISCORD_ID = "767437050513063946";
+
+        let currentUser = null;
+        let userTopicsCount = 0;
+
+        // Logowanie Discord (Przekierowanie)
+        window.loginWithDiscord = function() {
+            const url = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=token&scope=identify`;
+            window.location.href = url;
+        };
+
+        // Sprawdzanie tokenu po powrocie z Discorda
+        window.onload = () => {
+            const fragment = new URLSearchParams(window.location.hash.slice(1));
+            const [accessToken, tokenType] = [fragment.get('access_token'), fragment.get('token_type')];
+
+            if (accessToken) {
+                fetch('https://discord.com/api/users/@me', {
+                    headers: { authorization: `${tokenType} ${accessToken}` }
+                })
+                .then(result => result.json())
+                .then(response => {
+                    currentUser = response;
+                    initGameUI();
+                })
+                .catch(console.error);
+            }
+        };
+
+        function initGameUI() {
+            document.getElementById("auth-section").style.display = "none";
+            document.getElementById("game-section").style.display = "block";
+            document.getElementById("user-info").innerText = `Zalogowano jako: ${currentUser.username}`;
+
+            // Check Admin
+            if (currentUser.id === ADMIN_DISCORD_ID) {
+                document.getElementById("admin-panel").style.display = "block";
+            }
+
+            // Odtwórz liczbę dodanych tematów w tej sesji
+            checkUserTopicsLimit();
+            listenToLiveGame();
+        }
+
+        async function checkUserTopicsLimit() {
+            const topicsRef = ref(db, 'topics');
+            onValue(topicsRef, (snapshot) => {
+                let count = 0;
+                snapshot.forEach((childSnapshot) => {
+                    if(childSnapshot.val().authorId === currentUser.id) count++;
+                });
+                userTopicsCount = count;
+            });
+        }
+
+        // Dodawanie tematu do bazy
+        window.addTopic = function() {
+            const input = document.getElementById("topic-input").value;
+            if (input && userTopicsCount < 2) {
+                push(ref(db, 'topics'), {
+                    text: input,
+                    author: currentUser.username,
+                    authorId: currentUser.id,
+                    timestamp: Date.now()
+                });
+                document.getElementById("topic-input").value = "";
+            } else if (userTopicsCount >= 2) {
+                alert("Osiągnąłeś limit 2 tematów!");
+            }
+        };
+
+        // --- FUNKCJE ADMINA ---
+        window.setGameMode = function(mode) {
+            set(ref(db, 'game_state/mode'), mode);
+        };
+
+        window.spinMachine = async function() {
+            const topicsRef = ref(db, 'topics');
+            const snapshot = await get(topicsRef);
+            
+            if (snapshot.exists()) {
+                const topics = [];
+                const keys = [];
+                snapshot.forEach((child) => {
+                    topics.push(child.val().text);
+                    keys.push(child.key);
+                });
+
+                // Prosta animacja losowania dla wszystkich (zapisujemy status do bazy)
+                const randomIndex = Math.floor(Math.random() * topics.length);
+                const winningTopic = topics[randomIndex];
+                const winningKey = keys[randomIndex];
+
+                set(ref(db, 'game_state/currentSpin'), `Losowanie...`);
+                
+                setTimeout(() => {
+                    set(ref(db, 'game_state/currentSpin'), winningTopic);
+                    // Zapisz do historii
+                    push(ref(db, 'history'), { text: winningTopic, time: Date.now() });
+                    // Usuń wylosowany temat z puli
+                    remove(ref(db, `topics/${winningKey}`));
+                }, 2000); // 2 sekundy sztucznego "napięcia"
+            } else {
+                alert("Brak tematów w puli do wylosowania!");
+            }
+        };
+
+        window.clearHistory = function() {
+            remove(ref(db, 'history'));
+        };
+
+        // --- NASŁUCHIWANIE ZMIAN NA ŻYWO (REALTIME) ---
+        function listenToLiveGame() {
+            // Nasłuchuj trybu gry i aktualnego losowania
+            onValue(ref(db, 'game_state'), (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    if(data.mode) document.getElementById("game-mode-display").innerText = `Tryb: ${data.mode}`;
+                    if(data.currentSpin) document.getElementById("spin-result").innerText = data.currentSpin;
+                }
+            });
+
+            // Nasłuchuj historii
+            onValue(ref(db, 'history'), (snapshot) => {
+                const list = document.getElementById("history-list");
+                list.innerHTML = ""; // Wyczyść listę przed aktualizacją
+                const items = [];
+                snapshot.forEach((child) => {
+                    items.push(child.val().text);
+                });
+                
+                // Wyświetl od najnowszego
+                items.reverse().forEach(text => {
+                    const li = document.createElement("li");
+                    li.innerText = "> " + text;
+                    list.appendChild(li);
+                });
+            });
+        }
+    </script>
+</body>
+</html>
