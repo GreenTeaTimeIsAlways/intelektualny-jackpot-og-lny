@@ -127,9 +127,6 @@
         /* Magia ukrywania elementów Hosta */
         .admin-only { display: none; }
         body.is-admin .admin-only { display: block; }
-
-        .admin-login-btn { margin-top: 30px; background: none; border: none; color: #555; cursor: pointer; text-decoration: underline; font-size: 12px; transition: color 0.3s;}
-        .admin-login-btn:hover { color: #ffd700; }
     </style>
     
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
@@ -154,6 +151,7 @@
             <div class="user-profile">
                 <span style="color:#aaa;">Zalogowano jako:</span>
                 <span id="discordUsernameDisplay" style="color:#5865F2; font-weight:bold; font-size:18px;">...</span>
+                <span class="admin-only" style="margin-left: 10px; background: #dc3545; color: white; padding: 2px 6px; border-radius: 5px; font-size: 12px; font-weight: bold;">HOST</span>
             </div>
 
             <div class="panel-grid">
@@ -220,12 +218,15 @@
                 <h3>📜 Historia Losowań (Live)</h3>
                 <ul class="history-list" id="historyList"></ul>
             </div>
-            
-            <button class="admin-login-btn" onclick="loginAsAdmin()">⚙️ Panel Host (Zaloguj)</button>
         </div>
     </div>
 
     <script>
+        // ==========================================
+        // UWAGA: WPISZ TUTAJ SWOJE ID Z DISCORDA!
+        // ==========================================
+        const ADMIN_DISCORD_ID = "767437050513063946"; 
+
         // --- KONFIGURACJA DISCORD OAUTH2 ---
         const CLIENT_ID = "1477107560988414067";
         const REDIRECT_URI = "https://greenteatimeisalways.github.io/intelektualny-jackpot-og-lny/";
@@ -234,6 +235,7 @@
         document.getElementById('discordLoginBtn').href = discordAuthUrl;
 
         let currentDiscordUser = null;
+        let isAdmin = false;
 
         // --- KONFIGURACJA FIREBASE ---
         const firebaseConfig = {
@@ -254,7 +256,6 @@
         let topics = [];
         let bankTopicsData = [];
         let history = [];
-        let isAdmin = false;
 
         // --- AUTORYZACJA PRZY STARCIE STRONY ---
         window.onload = () => {
@@ -263,7 +264,6 @@
             const tokenType = fragment.get('token_type');
 
             if (accessToken) {
-                // Pobieranie danych profilu z serwerów Discord
                 fetch('https://discord.com/api/users/@me', {
                     headers: { authorization: `${tokenType} ${accessToken}` }
                 })
@@ -272,36 +272,26 @@
                     return result.json();
                 })
                 .then(response => {
-                    // response.global_name to nowy system nicków, username to stary
                     currentDiscordUser = response.global_name || response.username;
                     
-                    // Pokazanie aplikacji
+                    // SPRAWDZANIE UPRAWNIEŃ ADMINA
+                    if (response.id === ADMIN_DISCORD_ID) {
+                        isAdmin = true;
+                        document.body.classList.add("is-admin");
+                    }
+                    
                     document.getElementById('loginOverlay').classList.add('hidden');
                     document.getElementById('mainApp').classList.remove('hidden');
                     document.getElementById('discordUsernameDisplay').innerText = currentDiscordUser;
                     
-                    // Uruchomienie nasłuchiwania bazy dopiero po zalogowaniu
                     initFirebaseListeners();
                 })
                 .catch(error => {
                     console.error(error);
-                    window.location.hash = ""; // Wyczyść zepsuty token
+                    window.location.hash = "";
                 });
             }
         };
-
-        function loginAsAdmin() {
-            const password = prompt("Wprowadź hasło Hosta:");
-            if (password === "jackpot123") {
-                isAdmin = true;
-                document.body.classList.add("is-admin");
-                alert("Zalogowano pomyślnie! Masz dostęp do Skarbca i opcji czyszczenia.");
-                updateUI();
-                updateAdminBankUI();
-            } else if (password !== null) {
-                alert("Nieprawidłowe hasło!");
-            }
-        }
 
         // --- NASŁUCHIWANIE BAZY W CZASIE RZECZYWISTYM ---
         function initFirebaseListeners() {
@@ -388,7 +378,6 @@
             }
         }
 
-        // --- FUNKCJE SKARBCA ADMINA ---
         function createBankTopic() {
             const text = document.getElementById('adminNewTopic').value.trim();
             if(!text) return alert("Wpisz treść tematu!");
@@ -462,7 +451,6 @@
                 const plainPlayersStr = finalPlayersArr.join(mode === 'versus' ? " vs " : " ⚡ ");
                 saveToHistory(plainPlayersStr, finalTopic, topicAuthorDisplay, mode);
 
-                // Zerujemy pulę tematów po losowaniu
                 db.ref('discord_topics').remove();
 
             }, 2500);
@@ -500,7 +488,6 @@
             document.getElementById('playerCountDisplay').innerText = players.length;
             document.getElementById('topicCountDisplay').innerText = topics.length;
 
-            // Sprawdzanie, czy zalogowany użytkownik jest na liście i ukrywanie/odkrywanie przycisku dołączania
             const joinBtn = document.getElementById('joinPoolBtn');
             if (players.includes(currentDiscordUser)) {
                 joinBtn.disabled = true;
@@ -514,7 +501,6 @@
             activeList.innerHTML = "";
             playersData.forEach(p => {
                 const kickBtnHTML = isAdmin ? `<button class="kick-btn" onclick="kickPlayer('${p.key}')">Wyrzuć</button>` : '';
-                // Podświetlamy nick gracza na żółto, jeśli to jest on sam
                 const isMeStyle = (p.name === currentDiscordUser) ? 'color: #ffd700; font-weight: bold;' : '';
                 activeList.innerHTML += `<li style="padding: 5px 10px; ${isMeStyle}">👤 ${p.name} ${kickBtnHTML}</li>`;
             });
