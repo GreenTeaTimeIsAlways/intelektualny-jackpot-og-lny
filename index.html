@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Intelektualny Jackpot - Vintage Casino 🎰</title>
+    <title>Intelektualny Jackpot - Discord Live 🔴</title>
     <style>
         /* Stylistyka Kasyna - Vegas Theme */
         body {
@@ -134,10 +134,10 @@
 </head>
 <body>
 
-    <audio id="spinSnd" src="https://actions.google.com/sounds/v1/mechanisms/ratchet_turn.ogg" preload="auto"></audio>
-    <audio id="winSnd" src="https://actions.google.com/sounds/v1/alarms/ding_ding_ding.ogg" preload="auto"></audio>
+    <audio id="spinSnd" src="https://actions.google.com/sounds/v1/science_fiction/pulsating_hum.ogg" preload="auto"></audio>
+    <audio id="winSnd" src="https://actions.google.com/sounds/v1/human/applause_and_cheering.ogg" preload="auto"></audio>
 
-    <button id="audioUnlockBtn" onclick="unlockAudio()">🔊 AKTYWUJ DŹWIĘK MASZYNY</button>
+    <button id="audioUnlockBtn" onclick="unlockAudio()">🔊 WŁĄCZ DŹWIĘK</button>
 
     <div class="casino-container">
         <h1>🎰 Intelektualny Jackpot <span class="live-badge">LIVE</span></h1>
@@ -243,10 +243,6 @@
         function unlockAudio() {
             const spin = document.getElementById('spinSnd');
             const win = document.getElementById('winSnd');
-            
-            // Lekko przyspieszamy terkotanie, żeby brzmiało jak szybkie koła zębate maszyny
-            spin.playbackRate = 1.3; 
-            
             spin.play().then(() => spin.pause()).catch(() => {});
             win.play().then(() => win.pause()).catch(() => {});
             document.getElementById('audioUnlockBtn').style.display = 'none';
@@ -289,7 +285,7 @@
                     if (currentDiscordID === ADMIN_DISCORD_ID) {
                         isAdmin = true;
                         document.body.classList.add("is-admin");
-                        document.getElementById('viewToggleBtn').classList.remove('hidden');
+                        document.getElementById('viewToggleBtn').classList.remove('hidden'); // Pokazuje przycisk przełączania TYLKO adminowi
                     }
                     document.getElementById('loginOverlay').classList.add('hidden');
                     document.getElementById('mainApp').classList.remove('hidden');
@@ -374,17 +370,10 @@
             setTimeout(() => {
                 reel.style.transition = "transform 4s cubic-bezier(0.1, 0, 0.1, 1)";
                 reel.style.transform = `translateY(-${30 * 100}px)`;
-                
-                // Vintage dźwięk mechaniczny kręcenia
-                s1.loop = true; 
-                s1.play().catch(() => {});
+                s1.loop = true; s1.play().catch(() => {});
 
                 setTimeout(() => {
-                    s1.pause(); s1.currentTime = 0; 
-                    
-                    // Vintage Dzwonek (Ding Ding Ding)
-                    s2.play().catch(() => {});
-                    
+                    s1.pause(); s1.currentTime = 0; s2.play().catch(() => {});
                     document.getElementById('result').classList.remove('hidden');
                     document.getElementById('winnerNames').innerText = "🏆 " + winPlayersStr + " 🏆";
                     document.getElementById('winnerTopic').innerText = `"${winTopic.text}" (${winTopic.author})`;
@@ -402,6 +391,7 @@
             document.getElementById('playerCountDisplay').innerText = players.length;
             document.getElementById('topicCountDisplay').innerText = topics.length;
             
+            // Poprawka: przycisk BAN dostał klasę 'admin-only', dzięki czemu znika w podglądzie Gracza
             document.getElementById('activePlayersList').innerHTML = playersData.map(p => `<li>👤 ${p.name} ${isAdmin ? `<button class="kick-btn admin-only" onclick="banPlayer('${p.key}','${p.id}','${p.name}')">BAN</button>` : ''}</li>`).join("");
             
             document.getElementById('historyList').innerHTML = history.slice(0,20).map(h => `<li>[${h.time}] <b>${h.players}</b>: ${h.topic}</li>`).join("");
