@@ -11,8 +11,8 @@
             color: #ffd700;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
-            justify-content: center;
-            align-items: flex-start;
+            flex-direction: column;
+            align-items: center;
             min-height: 100vh;
             margin: 0;
             background-image: radial-gradient(circle, #1a4a30 0%, #0f2b1c 80%);
@@ -31,125 +31,36 @@
             width: 100%;
         }
 
-        h1 {
-            margin-top: 0;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-size: 28px;
-            text-shadow: 0 0 10px #ffd700, 0 0 20px #d4af37;
-        }
+        h1 { margin-top: 0; text-transform: uppercase; letter-spacing: 2px; font-size: 28px; text-shadow: 0 0 10px #ffd700, 0 0 20px #d4af37; }
 
-        .live-badge {
-            display: inline-block;
-            background: #ff0000;
-            color: #fff;
-            font-size: 12px;
-            padding: 2px 8px;
-            border-radius: 10px;
-            vertical-align: middle;
-            margin-left: 10px;
-            animation: pulse 1.5s infinite;
-        }
+        .live-badge { display: inline-block; background: #ff0000; color: #fff; font-size: 12px; padding: 2px 8px; border-radius: 10px; vertical-align: middle; margin-left: 10px; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
+        .panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+        @media (max-width: 600px) { .panel-grid { grid-template-columns: 1fr; } }
 
-        .panel-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 25px;
-        }
-
-        @media (max-width: 600px) {
-            .panel-grid { grid-template-columns: 1fr; }
-        }
-
-        .panel {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 15px;
-            border-radius: 10px;
-            border: 1px solid #555;
-            text-align: left;
-        }
-
+        .panel { background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 10px; border: 1px solid #555; text-align: left; }
         .panel h3 { margin-top: 0; color: #ccc; font-size: 16px; border-bottom: 1px solid #444; padding-bottom: 5px; }
 
-        input[type="text"], input[type="number"], select {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 2px solid #ffd700;
-            background: #222;
-            color: white;
-            border-radius: 5px;
-            box-sizing: border-box;
-            outline: none;
-        }
-
-        button.action-btn {
-            width: 100%;
-            padding: 8px;
-            background: #28a745;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-bottom: 5px;
-        }
+        input[type="text"], input[type="number"], select { width: 100%; padding: 10px; margin-bottom: 10px; border: 2px solid #ffd700; background: #222; color: white; border-radius: 5px; box-sizing: border-box; outline: none; }
+        
+        button.action-btn { width: 100%; padding: 8px; background: #28a745; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin-bottom: 5px; }
         button.action-btn:hover { background: #218838; }
-
         button.clear-btn { background: #dc3545; margin-top: 5px; }
         button.clear-btn:hover { background: #c82333; }
+        button.kick-btn { background: #dc3545; color: white; border: none; border-radius: 3px; cursor: pointer; padding: 2px 8px; font-size: 12px; float: right; margin-top: 2px;}
 
-        .settings-panel {
-            background: rgba(0, 0, 0, 0.6);
-            padding: 20px;
-            border-radius: 10px;
-            border: 2px solid #d4af37;
-            margin-bottom: 25px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
+        .settings-panel { background: rgba(0, 0, 0, 0.6); padding: 20px; border-radius: 10px; border: 2px solid #d4af37; margin-bottom: 25px; display: flex; flex-direction: column; align-items: center; }
         .radio-group { margin-bottom: 15px; }
         .radio-group label { cursor: pointer; margin: 0 10px; font-size: 16px; color: #fff; }
-        .radio-group input { margin-right: 5px; }
-
-        .spin-btn {
-            padding: 15px 40px;
-            font-size: 20px;
-            font-weight: bold;
-            cursor: pointer;
-            background: linear-gradient(to bottom, #ffdf00, #d4af37);
-            color: #000;
-            border: none;
-            border-radius: 50px;
-            text-transform: uppercase;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
-            width: 100%;
-            margin-bottom: 20px;
-        }
-
+        
+        .spin-btn { padding: 15px 40px; font-size: 20px; font-weight: bold; cursor: pointer; background: linear-gradient(to bottom, #ffdf00, #d4af37); color: #000; border: none; border-radius: 50px; text-transform: uppercase; transition: all 0.3s ease; width: 100%; margin-bottom: 20px; box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3); }
         .spin-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255, 215, 0, 0.6); }
         .spin-btn:disabled { background: #555; color: #888; cursor: not-allowed; }
 
-        #result {
-            padding: 20px;
-            border: 2px dashed #ffd700;
-            background: rgba(255, 215, 0, 0.05);
-            border-radius: 10px;
-            min-height: 100px;
-        }
-
+        #result { padding: 20px; border: 2px dashed #ffd700; background: rgba(255, 215, 0, 0.05); border-radius: 10px; min-height: 100px; }
         .hidden { display: none !important; }
-
+        
         .result-title { font-size: 16px; color: #ccc; margin: 0 0 10px 0; }
         .result-players { font-size: 24px; font-weight: bold; color: #fff; text-shadow: 0 0 10px #fff; margin-bottom: 15px; }
         .result-topic { font-size: 20px; color: #4CAF50; font-style: italic; background: #000; padding: 10px; border-radius: 5px;}
@@ -158,18 +69,22 @@
         @keyframes flicker { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
         .stats-info { font-size: 12px; color: #888; margin-top: 5px; margin-bottom: 10px; }
-        
-        .history-list {
-            list-style: none; padding: 0; margin: 0; max-height: 200px; overflow-y: auto; text-align: left;
-        }
-        .history-list li {
-            background: #222; margin-bottom: 8px; padding: 10px; border-radius: 5px; border-left: 3px solid #ffd700; font-size: 14px; color: #ddd;
-        }
+        .history-list { list-style: none; padding: 0; margin: 0; max-height: 200px; overflow-y: auto; text-align: left; }
+        .history-list li { background: #222; margin-bottom: 8px; padding: 10px; border-radius: 5px; border-left: 3px solid #ffd700; font-size: 14px; color: #ddd; }
         .history-list li .time { color: #888; font-size: 12px; display: block; margin-bottom: 4px; }
         .highlight { color: #ffd700; font-weight: bold; }
         .mode-badge { background: #444; padding: 2px 6px; border-radius: 3px; font-size: 10px; text-transform: uppercase; margin-right: 5px; color: #fff;}
         .mode-versus { border-bottom: 2px solid #007bff; }
         .mode-deathmatch { border-bottom: 2px solid #dc3545; }
+
+        /* Magia ukrywania elementów dla zwykłych graczy */
+        .admin-only { display: none; }
+        body.is-admin .admin-only { display: block; }
+        body.is-admin .admin-only-flex { display: flex; }
+        body.is-admin .admin-only-inline { display: inline-block; }
+
+        .admin-login-btn { margin-top: 30px; background: none; border: none; color: #555; cursor: pointer; text-decoration: underline; font-size: 12px; }
+        .admin-login-btn:hover { color: #888; }
     </style>
 </head>
 <body>
@@ -182,8 +97,10 @@
                 <h3>👥 Baza Graczy</h3>
                 <input type="text" id="newPlayer" placeholder="Nazwa nowego gracza">
                 <button class="action-btn" onclick="window.addPlayer()">Dodaj Gracza</button>
-                <div class="stats-info">Zapisanych graczy: <span id="playerCountDisplay">0</span></div>
-                <button class="action-btn clear-btn" onclick="window.clearPlayers()">🗑️ Wyczyść listę</button>
+                <button class="action-btn clear-btn admin-only" onclick="window.clearPlayers()">🗑️ Wyczyść wszystkich</button>
+                
+                <h4 style="margin: 15px 0 5px 0; color: #aaa; font-size: 14px; border-bottom: 1px dashed #444;">Lista obecnych: (<span id="playerCountDisplay">0</span>)</h4>
+                <ul class="history-list" id="activePlayersList" style="max-height: 120px;"></ul>
             </div>
 
             <div class="panel">
@@ -194,11 +111,11 @@
                 <input type="text" id="newTopic" placeholder="Wpisz temat do dyskusji">
                 <button class="action-btn" onclick="window.addTopic()">Dodaj do Puli</button>
                 <div class="stats-info">Tematów w puli: <span id="topicCountDisplay">0</span></div>
-                <button class="action-btn clear-btn" onclick="window.clearTopics()">🗑️ Wyczyść pulę</button>
+                <button class="action-btn clear-btn admin-only" onclick="window.clearTopics()">🗑️ Wyczyść pulę tematów</button>
             </div>
         </div>
 
-        <div class="settings-panel">
+        <div class="settings-panel admin-only-flex admin-only">
             <div class="radio-group">
                 <label style="color:#ffd700; font-weight:bold; display:block; text-align:center; margin-bottom:10px;">Wybierz tryb gry:</label>
                 <label><input type="radio" name="gameMode" value="versus" checked onchange="window.toggleMode()"> ⚔️ Versus (1 vs 1)</label>
@@ -211,7 +128,7 @@
             </div>
         </div>
         
-        <button id="spinBtn" class="spin-btn" onclick="window.drawJackpot()">LOSUJ!</button>
+        <button id="spinBtn" class="spin-btn admin-only" onclick="window.drawJackpot()">LOSUJ!</button>
         
         <div id="result" class="hidden">
             <p class="result-title">Wylosowani Uczestnicy:</p>
@@ -226,11 +143,12 @@
         </div>
     </div>
 
+    <button class="admin-login-btn" onclick="window.loginAsAdmin()">⚙️ Panel Host (Zaloguj)</button>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
 
-        // Twoja konfiguracja Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyBu8MIxIAAYwYnDEofUE4mZep7cor5MlFM",
             authDomain: "intelektualny-jackpot.firebaseapp.com",
@@ -244,16 +162,35 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Zmienne lokalne do szybkiego dostępu w interfejsie
-        let players = [];
+        let playersData = []; // Zapisuje imię i unikalny klucz Firebase, aby móc usuwać konkretne osoby
+        let players = [];     // Zwykła tablica samych imion
         let topics = [];
         let history = [];
+        let isAdmin = false;
 
-        // --- NASŁUCHIWANIE BAZY W CZASIE RZECZYWISTYM ---
+        // --- LOGOWANIE ADMINA ---
+        window.loginAsAdmin = function() {
+            // TUTAJ ZMIENIASZ HASŁO DLA SIEBIE
+            const password = prompt("Wprowadź hasło Hosta:");
+            if (password === "jackpot123") {
+                isAdmin = true;
+                document.body.classList.add("is-admin");
+                alert("Zalogowano pomyślnie! Masz teraz pełną kontrolę nad panelem.");
+                updateUI();
+            } else if (password !== null) {
+                alert("Nieprawidłowe hasło!");
+            }
+        };
+
+        // --- NASŁUCHIWANIE BAZY ---
         onValue(ref(db, 'players'), (snapshot) => {
+            playersData = [];
             players = [];
             if (snapshot.exists()) {
-                snapshot.forEach((child) => { players.push(child.val()); });
+                snapshot.forEach((child) => { 
+                    playersData.push({ key: child.key, name: child.val() });
+                    players.push(child.val()); 
+                });
             }
             updateUI();
         });
@@ -271,20 +208,16 @@
             if (snapshot.exists()) {
                 snapshot.forEach((child) => { history.push(child.val()); });
             }
-            history.reverse(); // Odwracamy, żeby najnowsze były na górze
+            history.reverse();
             updateUI();
         });
 
-
-        // --- FUNKCJE APLIKACJI WYSTAWIONE DLA HTML ---
+        // --- FUNKCJE APLIKACJI ---
         window.toggleMode = function() {
             const mode = document.querySelector('input[name="gameMode"]:checked').value;
             const dmSettings = document.getElementById('deathmatchSettings');
-            if(mode === 'deathmatch') {
-                dmSettings.classList.remove('hidden');
-            } else {
-                dmSettings.classList.add('hidden');
-            }
+            if(mode === 'deathmatch') { dmSettings.classList.remove('hidden'); } 
+            else { dmSettings.classList.add('hidden'); }
         };
 
         window.addPlayer = function() {
@@ -292,12 +225,19 @@
             if (!name) return alert("Wpisz nazwę gracza!");
             if (players.includes(name)) return alert("Gracz jest już na liście!");
             
-            push(ref(db, 'players'), name); // Wysłanie do chmury
+            push(ref(db, 'players'), name);
             document.getElementById('newPlayer').value = "";
         };
 
+        // NOWOŚĆ: Wyrzucanie konkretnego gracza
+        window.kickPlayer = function(key) {
+            if(confirm("Czy wyrzucić tego gracza z puli?")) {
+                remove(ref(db, 'players/' + key));
+            }
+        };
+
         window.clearPlayers = function() {
-            if(confirm("Czy na pewno chcesz bezpowrotnie usunąć wszystkich graczy u wszystkich użytkowników?")) {
+            if(confirm("Czy na pewno chcesz bezpowrotnie usunąć wszystkich graczy?")) {
                 remove(ref(db, 'players'));
             }
         };
@@ -311,7 +251,7 @@
             const authorTopics = topics.filter(t => t.author === author);
             if (authorTopics.length >= 5) return alert(`Gracz ${author} wykorzystał już swój limit 5 tematów!`);
 
-            push(ref(db, 'topics'), { author: author, text: text }); // Wysłanie do chmury
+            push(ref(db, 'topics'), { author: author, text: text });
             document.getElementById('newTopic').value = "";
         };
 
@@ -322,15 +262,13 @@
         };
 
         window.drawJackpot = function() {
+            if(!isAdmin) return; // Zabezpieczenie na wypadek hakerów
+
             const mode = document.querySelector('input[name="gameMode"]:checked').value;
             const drawCount = mode === 'versus' ? 2 : parseInt(document.getElementById('drawCount').value);
             
-            if (players.length < drawCount) {
-                return alert(`Potrzebujesz co najmniej ${drawCount} graczy na liście, żeby wylosować ten tryb!`);
-            }
-            if (topics.length === 0) {
-                return alert("Pula tematów jest pusta! Ktoś z graczy musi najpierw dorzucić temat.");
-            }
+            if (players.length < drawCount) return alert(`Potrzebujesz co najmniej ${drawCount} graczy na liście!`);
+            if (topics.length === 0) return alert("Pula tematów jest pusta!");
 
             const btn = document.getElementById('spinBtn');
             const resultDiv = document.getElementById('result');
@@ -361,70 +299,4 @@
                 const finalPlayersArr = shuffleArray([...players]).slice(0, drawCount);
                 const finalPlayersStr = finalPlayersArr.join(separator);
                 
-                const randomTopicObj = topics[Math.floor(Math.random() * topics.length)];
-                const finalTopic = randomTopicObj.text;
-                const topicAuthorDisplay = `👤 Autor: ${randomTopicObj.author}`;
-
-                winnerNames.innerHTML = "🏆 " + finalPlayersStr + " 🏆";
-                winnerTopic.innerHTML = `"${finalTopic}" <br><span style="font-size:12px; color:#888;">(${topicAuthorDisplay})</span>`;
-                
-                btn.disabled = false;
-                btn.innerText = "LOSUJ PONOWNIE!";
-
-                const plainPlayersStr = finalPlayersArr.join(mode === 'versus' ? " vs " : " ⚡ ");
-                saveToHistory(plainPlayersStr, finalTopic, topicAuthorDisplay, mode);
-            }, 2500);
-        };
-
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-
-        function saveToHistory(playersStr, topic, author, mode) {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString('pl-PL');
-            push(ref(db, 'history'), { time: timeString, players: playersStr, topic: topic, author: author, mode: mode });
-        }
-
-        function updateUI() {
-            document.getElementById('playerCountDisplay').innerText = players.length;
-            document.getElementById('topicCountDisplay').innerText = topics.length;
-
-            const authorSelect = document.getElementById('topicAuthor');
-            // Zachowaj aktualnie wybranego autora podczas odświeżania, żeby nie resetowało podczas pisania
-            const currentSelection = authorSelect.value; 
-            
-            let options = '<option value="">-- Wybierz autora --</option>';
-            players.forEach(p => { options += `<option value="${p}">${p}</option>`; });
-            authorSelect.innerHTML = options;
-            
-            if (players.includes(currentSelection)) {
-                authorSelect.value = currentSelection;
-            }
-
-            const list = document.getElementById('historyList');
-            list.innerHTML = "";
-            
-            // Wyświetlamy max 50 ostatnich losowań
-            const displayHistory = history.slice(0, 50);
-            
-            displayHistory.forEach(record => {
-                const badgeClass = record.mode === 'versus' ? 'mode-versus' : 'mode-deathmatch';
-                const badgeText = record.mode === 'versus' ? 'Versus' : 'Deathmatch';
-                list.innerHTML += `
-                    <li>
-                        <span class="time">🕒 ${record.time}</span>
-                        <span class="mode-badge ${badgeClass}">${badgeText}</span>
-                        Wybrani: <span class="highlight">${record.players}</span><br>
-                        Temat: <i>"${record.topic}"</i> <span style="font-size:11px; color:#aaa;">(${record.author})</span>
-                    </li>
-                `;
-            });
-        }
-    </script>
-</body>
-</html>
+                const randomTopicObj = topics[Math.floor(Math.random
