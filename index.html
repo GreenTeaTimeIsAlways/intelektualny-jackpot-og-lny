@@ -201,8 +201,19 @@
         const CLIENT_ID = "1477107560988414067";
         const REDIRECT_URI = window.location.origin + window.location.pathname;
 
+        // --- ZMODYFIKOWANE AUDIO ---
         const spinSound = new Audio("https://www.soundjay.com/misc/sounds/slot-machine-payout-1.mp3");
         const winSound = new Audio("https://www.soundjay.com/misc/sounds/win-chime-02.mp3");
+
+        // Funkcja "odblokowująca" audio na urządzeniach/przeglądarkach
+        function unlockAudio() {
+            spinSound.play().then(() => { spinSound.pause(); spinSound.currentTime = 0; });
+            winSound.play().then(() => { winSound.pause(); winSound.currentTime = 0; });
+            document.removeEventListener('click', unlockAudio);
+            document.removeEventListener('touchstart', unlockAudio);
+        }
+        document.addEventListener('click', unlockAudio);
+        document.addEventListener('touchstart', unlockAudio);
 
         firebase.initializeApp({
             apiKey: "AIzaSyBu8MIxIAAYwYnDEofUE4mZep7cor5MlFM",
@@ -287,10 +298,20 @@
             const btn = document.getElementById('spinBtn');
             btn.disabled = true;
             document.getElementById('result').classList.remove('hidden');
-            spinSound.play().catch(() => {});
+            
+            // Graj dźwięk spinu
+            spinSound.currentTime = 0;
+            spinSound.play().catch(e => console.log("Audio play blocked"));
+
             const si = setInterval(() => { document.getElementById('winnerNames').innerText = players.sort(() => 0.5 - Math.random()).slice(0, count).join(" VS "); }, 100);
             setTimeout(() => {
-                clearInterval(si); winSound.play().catch(() => {});
+                clearInterval(si); 
+                spinSound.pause();
+                
+                // Graj dźwięk wygranej
+                winSound.currentTime = 0;
+                winSound.play().catch(e => console.log("Audio play blocked"));
+
                 const finalP = players.sort(() => 0.5 - Math.random()).slice(0, count);
                 const finalT = topics[Math.floor(Math.random() * topics.length)];
                 document.getElementById('winnerNames').innerText = "🏆 " + finalP.join(" VS ") + " 🏆";
