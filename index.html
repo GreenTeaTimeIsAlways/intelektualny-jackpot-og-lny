@@ -97,7 +97,7 @@
         .panel { background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 10px; border: 1px solid #555; text-align: left; position: relative; }
         .panel h3 { margin-top: 0; color: #ccc; font-size: 16px; border-bottom: 1px solid #444; padding-bottom: 5px; }
         input[type="text"], input[type="number"], select { width: 100%; padding: 10px; margin-bottom: 10px; border: 2px solid #ffd700; background: #222; color: white; border-radius: 5px; box-sizing: border-box; outline: none; }
-        button.action-btn { width: 100%; padding: 8px; background: #28a745; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin-bottom: 5px; }
+        button.action-btn { width: 100%; padding: 8px; background: #28a745; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin-bottom: 5px; transition: background 0.2s; }
         button.action-btn:hover { background: #218838; }
         button.action-btn:disabled { background: #555; color: #888; cursor: not-allowed; }
         button.clear-btn { background: #dc3545; margin-top: 5px; }
@@ -134,10 +134,10 @@
 </head>
 <body>
 
-    <audio id="spinSnd" src="https://actions.google.com/sounds/v1/science_fiction/pulsating_hum.ogg" preload="auto"></audio>
-    <audio id="winSnd" src="https://actions.google.com/sounds/v1/human/applause_and_cheering.ogg" preload="auto"></audio>
+    <audio id="spinSnd" src="https://actions.google.com/sounds/v1/mechanisms/ratchet_turn.ogg" preload="auto"></audio>
+    <audio id="winSnd" src="https://actions.google.com/sounds/v1/alarms/ding_ding_ding.ogg" preload="auto"></audio>
 
-    <button id="audioUnlockBtn" onclick="unlockAudio()">🔊 WŁĄCZ DŹWIĘK</button>
+    <button id="audioUnlockBtn" onclick="unlockAudio()">🔊 AKTYWUJ DŹWIĘK MASZYNY</button>
 
     <div class="casino-container">
         <h1>🎰 Intelektualny Jackpot <span class="live-badge">LIVE</span></h1>
@@ -192,8 +192,12 @@
             <div class="panel-grid">
                 <div class="panel">
                     <h3>👥 Baza Graczy</h3>
+                    
                     <button id="joinPoolBtn" class="action-btn" onclick="joinGame()">🎮 Dołącz do losowania</button>
-                    <button class="action-btn clear-btn admin-only" onclick="clearPlayers()">🗑️ Wyczyść wszystkich</button>
+                    <button id="leavePoolBtn" class="action-btn clear-btn hidden" onclick="leaveGame()">🚪 Opuść losowanie</button>
+                    
+                    <button class="action-btn clear-btn admin-only" onclick="clearPlayers()" style="margin-top: 5px;">🗑️ Wyczyść wszystkich</button>
+                    
                     <h4 style="margin: 15px 0 5px 0; color: #aaa; font-size: 14px; border-bottom: 1px dashed #444;">Lista obecnych: (<span id="playerCountDisplay">0</span>)</h4>
                     <ul class="history-list" id="activePlayersList" style="max-height: 120px;"></ul>
                 </div>
@@ -243,6 +247,9 @@
         function unlockAudio() {
             const spin = document.getElementById('spinSnd');
             const win = document.getElementById('winSnd');
+            
+            spin.playbackRate = 1.3; 
+            
             spin.play().then(() => spin.pause()).catch(() => {});
             win.play().then(() => win.pause()).catch(() => {});
             document.getElementById('audioUnlockBtn').style.display = 'none';
@@ -285,7 +292,7 @@
                     if (currentDiscordID === ADMIN_DISCORD_ID) {
                         isAdmin = true;
                         document.body.classList.add("is-admin");
-                        document.getElementById('viewToggleBtn').classList.remove('hidden'); // Pokazuje przycisk przełączania TYLKO adminowi
+                        document.getElementById('viewToggleBtn').classList.remove('hidden');
                     }
                     document.getElementById('loginOverlay').classList.add('hidden');
                     document.getElementById('mainApp').classList.remove('hidden');
@@ -318,9 +325,17 @@
         }
 
         function joinGame() {
-            if (bannedList[currentDiscordID]) return alert("Zbanowany!");
-            if (players.includes(currentDiscordUser)) return alert("Już jesteś!");
+            if (bannedList[currentDiscordID]) return alert("Jesteś zbanowany!");
+            if (players.includes(currentDiscordUser)) return;
             db.ref('discord_players').push({ name: currentDiscordUser, id: currentDiscordID });
+        }
+
+        // --- NOWA FUNKCJA OPUSZCZANIA POKOJU ---
+        function leaveGame() {
+            const myData = playersData.find(p => p.id === currentDiscordID);
+            if (myData) {
+                db.ref('discord_players/' + myData.key).remove();
+            }
         }
 
         function addBot() {
@@ -332,7 +347,7 @@
         }
 
         function banPlayer(key, id, name) {
-            if(confirm(`Ban ${name}?`)) { db.ref('discord_bans/' + id).set(name); db.ref('discord_players/' + key).remove(); }
+            if(confirm(`Zbanować gracza ${name}?`)) { db.ref('discord_bans/' + id).set(name); db.ref('discord_players/' + key).remove(); }
         }
 
         function addTopic() {
@@ -387,15 +402,23 @@
         function toggleMode() { document.getElementById('deathmatchSettings').classList.toggle('hidden', document.querySelector('input[name="gameMode"]:checked').value === 'versus'); }
         function updateAdminBankUI() { document.getElementById('adminTopicSelect').innerHTML = '<option value="">-- Bank tematów --</option>' + bankTopicsData.map(t => `<option value="${t.key}">${t.text}</option>`).join(""); }
         function updateBanUI() { document.getElementById('banListUI').innerHTML = Object.keys(bannedList).map(id => `<li>🛑 ${bannedList[id]} <button class="unban-btn" onclick="db.ref('discord_bans/${id}').remove()">Odbanuj</button></li>`).join(""); }
+        
         function updateUI() {
             document.getElementById('playerCountDisplay').innerText = players.length;
             document.getElementById('topicCountDisplay').innerText = topics.length;
             
-            // Poprawka: przycisk BAN dostał klasę 'admin-only', dzięki czemu znika w podglądzie Gracza
             document.getElementById('activePlayersList').innerHTML = playersData.map(p => `<li>👤 ${p.name} ${isAdmin ? `<button class="kick-btn admin-only" onclick="banPlayer('${p.key}','${p.id}','${p.name}')">BAN</button>` : ''}</li>`).join("");
             
             document.getElementById('historyList').innerHTML = history.slice(0,20).map(h => `<li>[${h.time}] <b>${h.players}</b>: ${h.topic}</li>`).join("");
-            document.getElementById('joinPoolBtn').disabled = players.includes(currentDiscordUser);
+            
+            // Logika dynamicznej zamiany przycisku Dołącz/Opuść
+            if (players.includes(currentDiscordUser)) {
+                document.getElementById('joinPoolBtn').classList.add('hidden');
+                document.getElementById('leavePoolBtn').classList.remove('hidden');
+            } else {
+                document.getElementById('joinPoolBtn').classList.remove('hidden');
+                document.getElementById('leavePoolBtn').classList.add('hidden');
+            }
         }
 
         window.createBankTopic = () => { const t = document.getElementById('adminNewTopic').value.trim(); if(t) db.ref('discord_adminBank').push({author: "ADMIN", text: t}); document.getElementById('adminNewTopic').value = ""; };
