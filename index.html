@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Intelektualny Jackpot - Wersja Live 🔴</title>
+    <title>Intelektualny Jackpot - Discord Live 🔴</title>
     <style>
         /* Stylistyka Kasyna */
         body {
@@ -31,6 +31,45 @@
             width: 100%;
         }
 
+        /* Ekran logowania */
+        #loginOverlay {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 60vh;
+        }
+
+        .discord-btn {
+            background-color: #5865F2;
+            color: white;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.3s;
+            margin-top: 20px;
+            border: none;
+            cursor: pointer;
+        }
+        .discord-btn:hover { background-color: #4752C4; }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.05);
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px dashed #5865F2;
+        }
+
         h1 { margin-top: 0; text-transform: uppercase; letter-spacing: 2px; font-size: 28px; text-shadow: 0 0 10px #ffd700, 0 0 20px #d4af37; }
 
         .live-badge { display: inline-block; background: #ff0000; color: #fff; font-size: 12px; padding: 2px 8px; border-radius: 10px; vertical-align: middle; margin-left: 10px; animation: pulse 1.5s infinite; }
@@ -46,6 +85,8 @@
         
         button.action-btn { width: 100%; padding: 8px; background: #28a745; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin-bottom: 5px; }
         button.action-btn:hover { background: #218838; }
+        button.action-btn:disabled { background: #555; color: #888; cursor: not-allowed; }
+        
         button.clear-btn { background: #dc3545; margin-top: 5px; }
         button.clear-btn:hover { background: #c82333; }
         button.kick-btn { background: #dc3545; color: white; border: none; border-radius: 3px; cursor: pointer; padding: 2px 8px; font-size: 12px; float: right; margin-top: 2px;}
@@ -98,80 +139,103 @@
 
     <div class="casino-container">
         <h1>🎰 Intelektualny Jackpot <span class="live-badge">LIVE</span></h1>
-        
-        <div class="panel-grid">
-            <div class="panel">
-                <h3>👥 Baza Graczy</h3>
-                <input type="text" id="newPlayer" placeholder="Nazwa nowego gracza">
-                <button class="action-btn" onclick="addPlayer()">Dodaj Gracza</button>
-                <button class="action-btn clear-btn admin-only" onclick="clearPlayers()">🗑️ Wyczyść wszystkich</button>
+
+        <div id="loginOverlay">
+            <h2 style="color: #ccc;">Dostęp tylko dla zweryfikowanych graczy</h2>
+            <p style="color: #888; font-size: 14px;">Zaloguj się, aby zsynchronizować swój nick z maszyną losującą.</p>
+            <a id="discordLoginBtn" href="#" class="discord-btn">
+                <img src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png" alt="Discord" style="width: 24px;">
+                Zaloguj przez Discord
+            </a>
+        </div>
+
+        <div id="mainApp" class="hidden">
+            
+            <div class="user-profile">
+                <span style="color:#aaa;">Zalogowano jako:</span>
+                <span id="discordUsernameDisplay" style="color:#5865F2; font-weight:bold; font-size:18px;">...</span>
+            </div>
+
+            <div class="panel-grid">
+                <div class="panel">
+                    <h3>👥 Baza Graczy</h3>
+                    <button id="joinPoolBtn" class="action-btn" onclick="joinGame()">🎮 Dołącz do dzisiejszego losowania</button>
+                    <button class="action-btn clear-btn admin-only" onclick="clearPlayers()">🗑️ Wyczyść wszystkich</button>
+                    
+                    <h4 style="margin: 15px 0 5px 0; color: #aaa; font-size: 14px; border-bottom: 1px dashed #444;">Lista obecnych: (<span id="playerCountDisplay">0</span>)</h4>
+                    <ul class="history-list" id="activePlayersList" style="max-height: 120px;"></ul>
+                </div>
+
+                <div class="panel">
+                    <h3>💡 Dorzuć Temat (Max 5/os.)</h3>
+                    <input type="text" id="newTopic" placeholder="Wpisz temat na tę rundę">
+                    <button class="action-btn" onclick="addTopic()">Dodaj do Puli jako Ty</button>
+                    <div class="stats-info">Tematów w obecnej puli: <span id="topicCountDisplay">0</span></div>
+                    <button class="action-btn clear-btn admin-only" onclick="clearTopics()">🗑️ Wyczyść obecną pulę</button>
+                </div>
+            </div>
+
+            <div class="panel admin-only admin-bank-panel" style="margin-bottom: 25px;">
+                <h3>🏦 Skarbiec Tematów (Admin)</h3>
+                <p style="font-size: 12px; color: #888; margin-top: 0;">Wszystkie tematy kiedykolwiek dodane trafiają tutaj. Nie znikają po losowaniu.</p>
                 
-                <h4 style="margin: 15px 0 5px 0; color: #aaa; font-size: 14px; border-bottom: 1px dashed #444;">Lista obecnych: (<span id="playerCountDisplay">0</span>)</h4>
-                <ul class="history-list" id="activePlayersList" style="max-height: 120px;"></ul>
-            </div>
-
-            <div class="panel">
-                <h3>💡 Dorzuć Temat (Max 5/os.)</h3>
-                <select id="topicAuthor">
-                    <option value="">-- Wybierz autora --</option>
+                <select id="adminTopicSelect" style="border-color: #007bff; width: 100%; padding: 10px; margin-bottom: 10px; background: #222; color: white;">
+                    <option value="">-- Wybierz temat ze skarbca --</option>
                 </select>
-                <input type="text" id="newTopic" placeholder="Wpisz temat na tę rundę">
-                <button class="action-btn" onclick="addTopic()">Dodaj do Puli</button>
-                <div class="stats-info">Tematów w obecnej puli: <span id="topicCountDisplay">0</span></div>
-                <button class="action-btn clear-btn admin-only" onclick="clearTopics()">🗑️ Wyczyść obecną pulę</button>
-            </div>
-        </div>
+                
+                <div style="display: flex; gap: 10px;">
+                    <button class="action-btn btn-blue" onclick="pushBankTopic()">➕ Dorzuć do rundy</button>
+                    <button class="action-btn clear-btn" onclick="deleteBankTopic()" style="margin-top:0;">🗑️ Usuń ze skarbca</button>
+                </div>
 
-        <div class="panel admin-only admin-bank-panel" style="margin-bottom: 25px;">
-            <h3>🏦 Skarbiec Tematów (Admin)</h3>
-            <p style="font-size: 12px; color: #888; margin-top: 0;">Wszystkie tematy kiedykolwiek dodane trafiają tutaj. Nie znikają po losowaniu.</p>
+                <div style="margin-top: 15px; border-top: 1px dashed #444; padding-top: 10px;">
+                    <input type="text" id="adminNewTopic" placeholder="Stwórz nowy temat prosto do skarbca..." style="border-color: #007bff; width: 100%; padding: 10px; box-sizing: border-box; background: #222; color: white; margin-bottom: 10px;">
+                    <button class="action-btn btn-blue" onclick="createBankTopic()">Zapisz w skarbcu</button>
+                </div>
+            </div>
+
+            <div class="settings-panel">
+                <div class="radio-group">
+                    <label style="color:#ffd700; font-weight:bold; display:block; text-align:center; margin-bottom:10px;">Wybierz tryb gry:</label>
+                    <label><input type="radio" name="gameMode" value="versus" checked onchange="toggleMode()"> ⚔️ Versus (1 vs 1)</label>
+                    <label><input type="radio" name="gameMode" value="deathmatch" onchange="toggleMode()"> 💀 Deathmatch</label>
+                </div>
+
+                <div id="deathmatchSettings" class="hidden" style="margin-top: 10px;">
+                    <label style="color:#ffd700; font-size: 14px; display:block; margin-bottom: 5px;">Ilu graczy wpuścić na arenę?</label>
+                    <input type="number" id="drawCount" min="3" max="20" value="3" style="width: 100px; text-align:center;">
+                </div>
+            </div>
             
-            <select id="adminTopicSelect" style="border-color: #007bff;">
-                <option value="">-- Wybierz temat ze skarbca --</option>
-            </select>
+            <button id="spinBtn" class="spin-btn" onclick="drawJackpot()">LOSUJ!</button>
             
-            <div style="display: flex; gap: 10px;">
-                <button class="action-btn btn-blue" onclick="pushBankTopic()">➕ Dorzuć do obecnej rundy</button>
-                <button class="action-btn clear-btn" onclick="deleteBankTopic()" style="margin-top:0;">🗑️ Usuń ze skarbca</button>
+            <div id="result" class="hidden">
+                <p class="result-title">Wylosowani Uczestnicy:</p>
+                <div id="winnerNames" class="result-players"></div>
+                <p class="result-title">Temat starcia:</p>
+                <div id="winnerTopic" class="result-topic"></div>
             </div>
 
-            <div style="margin-top: 15px; border-top: 1px dashed #444; padding-top: 10px;">
-                <input type="text" id="adminNewTopic" placeholder="Stwórz nowy temat prosto do skarbca..." style="border-color: #007bff;">
-                <button class="action-btn btn-blue" onclick="createBankTopic()">Zapisz w skarbcu</button>
+            <div class="panel" style="margin-top: 25px;">
+                <h3>📜 Historia Losowań (Live)</h3>
+                <ul class="history-list" id="historyList"></ul>
             </div>
-        </div>
-
-        <div class="settings-panel">
-            <div class="radio-group">
-                <label style="color:#ffd700; font-weight:bold; display:block; text-align:center; margin-bottom:10px;">Wybierz tryb gry:</label>
-                <label><input type="radio" name="gameMode" value="versus" checked onchange="toggleMode()"> ⚔️ Versus (1 vs 1)</label>
-                <label><input type="radio" name="gameMode" value="deathmatch" onchange="toggleMode()"> 💀 Deathmatch</label>
-            </div>
-
-            <div id="deathmatchSettings" class="hidden" style="margin-top: 10px;">
-                <label style="color:#ffd700; font-size: 14px; display:block; margin-bottom: 5px;">Ilu graczy wpuścić na arenę?</label>
-                <input type="number" id="drawCount" min="3" max="20" value="3" style="width: 100px; text-align:center;">
-            </div>
-        </div>
-        
-        <button id="spinBtn" class="spin-btn" onclick="drawJackpot()">LOSUJ!</button>
-        
-        <div id="result" class="hidden">
-            <p class="result-title">Wylosowani Uczestnicy:</p>
-            <div id="winnerNames" class="result-players"></div>
-            <p class="result-title">Temat starcia:</p>
-            <div id="winnerTopic" class="result-topic"></div>
-        </div>
-
-        <div class="panel" style="margin-top: 25px;">
-            <h3>📜 Historia Losowań (Live)</h3>
-            <ul class="history-list" id="historyList"></ul>
+            
+            <button class="admin-login-btn" onclick="loginAsAdmin()">⚙️ Panel Host (Zaloguj)</button>
         </div>
     </div>
 
-    <button class="admin-login-btn" onclick="loginAsAdmin()">⚙️ Panel Host (Zaloguj)</button>
-
     <script>
+        // --- KONFIGURACJA DISCORD OAUTH2 ---
+        const CLIENT_ID = "1477107560988414067";
+        const REDIRECT_URI = "https://greenteatimeisalways.github.io/intelektualny-jackpot-og-lny/";
+        const discordAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=token&scope=identify`;
+        
+        document.getElementById('discordLoginBtn').href = discordAuthUrl;
+
+        let currentDiscordUser = null;
+
+        // --- KONFIGURACJA FIREBASE ---
         const firebaseConfig = {
             apiKey: "AIzaSyBu8MIxIAAYwYnDEofUE4mZep7cor5MlFM",
             authDomain: "intelektualny-jackpot.firebaseapp.com",
@@ -188,62 +252,97 @@
         let playersData = []; 
         let players = [];     
         let topics = [];
-        let bankTopicsData = []; // Baza tematów skarbca
+        let bankTopicsData = [];
         let history = [];
         let isAdmin = false;
+
+        // --- AUTORYZACJA PRZY STARCIE STRONY ---
+        window.onload = () => {
+            const fragment = new URLSearchParams(window.location.hash.slice(1));
+            const accessToken = fragment.get('access_token');
+            const tokenType = fragment.get('token_type');
+
+            if (accessToken) {
+                // Pobieranie danych profilu z serwerów Discord
+                fetch('https://discord.com/api/users/@me', {
+                    headers: { authorization: `${tokenType} ${accessToken}` }
+                })
+                .then(result => {
+                    if(!result.ok) throw new Error("Token wygasł");
+                    return result.json();
+                })
+                .then(response => {
+                    // response.global_name to nowy system nicków, username to stary
+                    currentDiscordUser = response.global_name || response.username;
+                    
+                    // Pokazanie aplikacji
+                    document.getElementById('loginOverlay').classList.add('hidden');
+                    document.getElementById('mainApp').classList.remove('hidden');
+                    document.getElementById('discordUsernameDisplay').innerText = currentDiscordUser;
+                    
+                    // Uruchomienie nasłuchiwania bazy dopiero po zalogowaniu
+                    initFirebaseListeners();
+                })
+                .catch(error => {
+                    console.error(error);
+                    window.location.hash = ""; // Wyczyść zepsuty token
+                });
+            }
+        };
 
         function loginAsAdmin() {
             const password = prompt("Wprowadź hasło Hosta:");
             if (password === "jackpot123") {
                 isAdmin = true;
                 document.body.classList.add("is-admin");
-                alert("Zalogowano pomyślnie! Masz dostęp do Skarbca Tematów.");
+                alert("Zalogowano pomyślnie! Masz dostęp do Skarbca i opcji czyszczenia.");
                 updateUI();
+                updateAdminBankUI();
             } else if (password !== null) {
                 alert("Nieprawidłowe hasło!");
             }
         }
 
         // --- NASŁUCHIWANIE BAZY W CZASIE RZECZYWISTYM ---
-        db.ref('players').on('value', (snapshot) => {
-            playersData = []; players = [];
-            if (snapshot.exists()) {
-                snapshot.forEach((child) => { 
-                    playersData.push({ key: child.key, name: child.val() });
-                    players.push(child.val()); 
-                });
-            }
-            updateUI();
-        });
+        function initFirebaseListeners() {
+            db.ref('discord_players').on('value', (snapshot) => {
+                playersData = []; players = [];
+                if (snapshot.exists()) {
+                    snapshot.forEach((child) => { 
+                        playersData.push({ key: child.key, name: child.val() });
+                        players.push(child.val()); 
+                    });
+                }
+                updateUI();
+            });
 
-        // Nasłuchuj publicznej puli
-        db.ref('topics').on('value', (snapshot) => {
-            topics = [];
-            if (snapshot.exists()) {
-                snapshot.forEach((child) => { topics.push(child.val()); });
+            db.ref('discord_topics').on('value', (snapshot) => {
+                topics = [];
+                if (snapshot.exists()) {
+                    snapshot.forEach((child) => { topics.push(child.val()); });
             }
-            updateUI();
-        });
+                updateUI();
+            });
 
-        // Nasłuchuj SKARBCA ADMINA
-        db.ref('adminBank').on('value', (snapshot) => {
-            bankTopicsData = [];
-            if (snapshot.exists()) {
-                snapshot.forEach((child) => { 
-                    bankTopicsData.push({ key: child.key, ...child.val() }); 
-                });
-            }
-            updateAdminBankUI();
-        });
+            db.ref('discord_adminBank').on('value', (snapshot) => {
+                bankTopicsData = [];
+                if (snapshot.exists()) {
+                    snapshot.forEach((child) => { 
+                        bankTopicsData.push({ key: child.key, ...child.val() }); 
+                    });
+                }
+                if(isAdmin) updateAdminBankUI();
+            });
 
-        db.ref('history').on('value', (snapshot) => {
-            history = [];
-            if (snapshot.exists()) {
-                snapshot.forEach((child) => { history.push(child.val()); });
-            }
-            history.reverse();
-            updateUI();
-        });
+            db.ref('discord_history').on('value', (snapshot) => {
+                history = [];
+                if (snapshot.exists()) {
+                    snapshot.forEach((child) => { history.push(child.val()); });
+                }
+                history.reverse();
+                updateUI();
+            });
+        }
 
         // --- FUNKCJE APLIKACJI ---
         function toggleMode() {
@@ -253,43 +352,39 @@
             else { dmSettings.classList.add('hidden'); }
         }
 
-        function addPlayer() {
-            const name = document.getElementById('newPlayer').value.trim();
-            if (!name) return alert("Wpisz nazwę gracza!");
-            if (players.includes(name)) return alert("Gracz jest już na liście!");
-            db.ref('players').push(name);
-            document.getElementById('newPlayer').value = "";
+        function joinGame() {
+            if (!currentDiscordUser) return alert("Błąd autoryzacji Discord!");
+            if (players.includes(currentDiscordUser)) return alert("Jesteś już zapisany do obecnego losowania!");
+            
+            db.ref('discord_players').push(currentDiscordUser);
         }
 
         function kickPlayer(key) {
-            if(confirm("Czy wyrzucić tego gracza z puli?")) db.ref('players/' + key).remove();
+            if(confirm("Czy wyrzucić tego gracza z puli?")) db.ref('discord_players/' + key).remove();
         }
 
         function clearPlayers() {
-            if(confirm("Czy na pewno chcesz usunąć wszystkich graczy?")) db.ref('players').remove();
+            if(confirm("Czy na pewno chcesz usunąć wszystkich graczy?")) db.ref('discord_players').remove();
         }
 
         function addTopic() {
-            const author = document.getElementById('topicAuthor').value;
             const text = document.getElementById('newTopic').value.trim();
-            if (!author) return alert("Wybierz autora tematu!");
             if (!text) return alert("Wpisz treść tematu!");
 
-            const authorTopics = topics.filter(t => t.author === author);
-            if (authorTopics.length >= 5) return alert(`Gracz ${author} wykorzystał limit 5 tematów w tej rundzie!`);
+            const authorTopics = topics.filter(t => t.author === currentDiscordUser);
+            if (authorTopics.length >= 5) return alert(`Wykorzystałeś już swój limit 5 tematów w tej rundzie!`);
 
-            const topicObj = { author: author, text: text };
+            const topicObj = { author: currentDiscordUser, text: text };
             
-            // Wysyłamy do publicznej puli ORAZ potajemnie do Skarbca
-            db.ref('topics').push(topicObj);
-            db.ref('adminBank').push(topicObj); 
+            db.ref('discord_topics').push(topicObj);
+            db.ref('discord_adminBank').push(topicObj); 
 
             document.getElementById('newTopic').value = "";
         }
 
         function clearTopics() {
             if(confirm("Czy wyczyścić publiczną pulę tematów? (Nie usunie to ich ze Skarbca)")) {
-                db.ref('topics').remove();
+                db.ref('discord_topics').remove();
             }
         }
 
@@ -297,7 +392,7 @@
         function createBankTopic() {
             const text = document.getElementById('adminNewTopic').value.trim();
             if(!text) return alert("Wpisz treść tematu!");
-            db.ref('adminBank').push({ author: "ADMIN", text: text });
+            db.ref('discord_adminBank').push({ author: "ADMIN", text: text });
             document.getElementById('adminNewTopic').value = "";
             alert("Zapisano w skarbcu!");
         }
@@ -306,7 +401,7 @@
             const key = document.getElementById('adminTopicSelect').value;
             if(!key) return alert("Wybierz temat z listy!");
             const topic = bankTopicsData.find(t => t.key === key);
-            db.ref('topics').push({ author: "ADMIN (ze skarbca)", text: topic.text });
+            db.ref('discord_topics').push({ author: "ADMIN (ze skarbca)", text: topic.text });
             alert("Przerzucono temat do publicznej puli!");
         }
 
@@ -314,7 +409,7 @@
             const key = document.getElementById('adminTopicSelect').value;
             if(!key) return alert("Wybierz temat z listy!");
             if(confirm("Czy usunąć ten temat ze skarbca na zawsze?")) {
-                db.ref('adminBank/' + key).remove();
+                db.ref('discord_adminBank/' + key).remove();
             }
         }
 
@@ -367,8 +462,8 @@
                 const plainPlayersStr = finalPlayersArr.join(mode === 'versus' ? " vs " : " ⚡ ");
                 saveToHistory(plainPlayersStr, finalTopic, topicAuthorDisplay, mode);
 
-                // KRYTYCZNA ZMIANA: Po udanym losowaniu z publicznej puli, zerujemy ją!
-                db.ref('topics').remove();
+                // Zerujemy pulę tematów po losowaniu
+                db.ref('discord_topics').remove();
 
             }, 2500);
         }
@@ -384,11 +479,12 @@
         function saveToHistory(playersStr, topic, author, mode) {
             const now = new Date();
             const timeString = now.toLocaleTimeString('pl-PL');
-            db.ref('history').push({ time: timeString, players: playersStr, topic: topic, author: author, mode: mode });
+            db.ref('discord_history').push({ time: timeString, players: playersStr, topic: topic, author: author, mode: mode });
         }
 
         function updateAdminBankUI() {
             const select = document.getElementById('adminTopicSelect');
+            if(!select) return;
             const currentVal = select.value; 
             
             let options = '<option value="">-- Wybierz temat ze skarbca --</option>';
@@ -404,20 +500,24 @@
             document.getElementById('playerCountDisplay').innerText = players.length;
             document.getElementById('topicCountDisplay').innerText = topics.length;
 
+            // Sprawdzanie, czy zalogowany użytkownik jest na liście i ukrywanie/odkrywanie przycisku dołączania
+            const joinBtn = document.getElementById('joinPoolBtn');
+            if (players.includes(currentDiscordUser)) {
+                joinBtn.disabled = true;
+                joinBtn.innerText = "Jesteś już na liście!";
+            } else {
+                joinBtn.disabled = false;
+                joinBtn.innerText = "🎮 Dołącz do dzisiejszego losowania";
+            }
+
             const activeList = document.getElementById('activePlayersList');
             activeList.innerHTML = "";
             playersData.forEach(p => {
                 const kickBtnHTML = isAdmin ? `<button class="kick-btn" onclick="kickPlayer('${p.key}')">Wyrzuć</button>` : '';
-                activeList.innerHTML += `<li style="padding: 5px 10px;">👤 ${p.name} ${kickBtnHTML}</li>`;
+                // Podświetlamy nick gracza na żółto, jeśli to jest on sam
+                const isMeStyle = (p.name === currentDiscordUser) ? 'color: #ffd700; font-weight: bold;' : '';
+                activeList.innerHTML += `<li style="padding: 5px 10px; ${isMeStyle}">👤 ${p.name} ${kickBtnHTML}</li>`;
             });
-
-            const authorSelect = document.getElementById('topicAuthor');
-            const currentSelection = authorSelect.value; 
-            
-            let options = '<option value="">-- Wybierz autora --</option>';
-            players.forEach(p => { options += `<option value="${p}">${p}</option>`; });
-            authorSelect.innerHTML = options;
-            if (players.includes(currentSelection)) authorSelect.value = currentSelection;
 
             const list = document.getElementById('historyList');
             list.innerHTML = "";
