@@ -56,7 +56,6 @@
             border: none;
             cursor: pointer;
         }
-        .discord-btn:hover { background-color: #4752C4; }
 
         .user-profile {
             display: flex;
@@ -101,11 +100,11 @@
         body.preview-player-mode .admin-only { display: none !important; }
 
         .view-toggle-btn { background: #555; color: #eee; border: 1px solid #777; padding: 5px 15px; border-radius: 5px; cursor: pointer; font-size: 12px; margin-bottom: 20px; }
+        .admin-section-title { color: #5bc0de; font-weight: bold; font-size: 12px; margin-bottom: 10px; display: block; text-transform: uppercase; }
     </style>
     
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
-    <script src="https://unpkg.com/@discord/embedded-app-sdk"></script>
 </head>
 <body>
 
@@ -114,10 +113,7 @@
 
         <div id="loginOverlay">
             <p id="statusMsg" style="color: #888; font-size: 14px;">Inicjalizacja systemu kasyna...</p>
-            <button id="discordLoginBtn" class="discord-btn hidden">
-                <img src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png" alt="Discord" style="width: 24px;">
-                Zaloguj przez Discord
-            </button>
+            <button id="discordLoginBtn" class="discord-btn hidden">Zaloguj przez Discord</button>
         </div>
 
         <div id="mainApp" class="hidden">
@@ -145,41 +141,52 @@
             </div>
 
             <div class="panel admin-only" style="margin-bottom: 25px; border-color: #007bff; background: rgba(0, 123, 255, 0.05);">
-                <h3 style="color: #5bc0de;">🏦 Skarbiec Tematów</h3>
-                <select id="adminTopicSelect">
-                    <option value="">-- Wybierz temat ze skarbca --</option>
-                </select>
-                <div style="display: flex; gap: 10px;">
-                    <button class="action-btn" style="background:#007bff;" onclick="pushBankTopic()">➕ Użyj z banku</button>
-                    <button class="action-btn clear-btn" onclick="deleteBankTopic()" style="margin-top:0;">🗑️ Usuń z banku</button>
+                <span class="admin-section-title">🏦 Skarbiec i Zarządzanie (Admin)</span>
+                
+                <div style="margin-bottom: 15px;">
+                    <label style="font-size: 12px; color: #aaa;">Skarbiec tematów:</label>
+                    <select id="adminTopicSelect">
+                        <option value="">-- Wybierz temat z banku --</option>
+                    </select>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="action-btn" style="background:#007bff;" onclick="pushBankTopic()">➕ Użyj z banku</button>
+                        <button class="action-btn clear-btn" onclick="deleteBankTopic()" style="margin-top:0;">🗑️ Usuń na stałe</button>
+                    </div>
                 </div>
-                <div style="margin-top: 15px; border-top: 1px dashed #444; padding-top: 10px;">
-                    <input type="text" id="adminNewTopic" placeholder="Wpisz temat prosto do banku...">
+
+                <div style="border-top: 1px dashed #444; padding-top: 10px; margin-bottom: 15px;">
+                    <label style="font-size: 12px; color: #aaa;">Dodaj bota do gry:</label>
+                    <input type="text" id="botNameInput" placeholder="Imię bota (np. MegaMózg)">
+                    <button class="action-btn" style="background:#6f42c1;" onclick="addBot()">🤖 Dodaj bota do listy</button>
+                </div>
+
+                <div style="border-top: 1px dashed #444; padding-top: 10px;">
+                    <label style="font-size: 12px; color: #aaa;">Dodaj temat do skarbca:</label>
+                    <input type="text" id="adminNewTopic" placeholder="Nowy temat do banku...">
                     <button class="action-btn" style="background:#007bff;" onclick="createBankTopic()">Zapisz w banku</button>
                 </div>
             </div>
 
             <div class="panel admin-only" style="margin-bottom: 25px; border-color: #dc3545;">
-                <h3 style="color: #dc3545;">🛑 Skarbiec Banów</h3>
+                <span class="admin-section-title">🛑 Skarbiec Banów</span>
                 <ul class="history-list" id="banListUI"></ul>
             </div>
 
             <div class="settings-panel">
-                <div style="margin-bottom: 10px;">
-                    <label><input type="radio" name="gameMode" value="versus" checked onchange="toggleMode()"> ⚔️ Versus (1 vs 1)</label>
+                <div>
+                    <label><input type="radio" name="gameMode" value="versus" checked onchange="toggleMode()"> ⚔️ Versus</label>
                     <label style="margin-left: 15px;"><input type="radio" name="gameMode" value="deathmatch" onchange="toggleMode()"> 💀 Deathmatch</label>
                 </div>
-                <div id="deathmatchSettings" class="hidden">
+                <div id="deathmatchSettings" class="hidden" style="margin-top: 10px;">
                     <label>Ilu graczy? </label>
                     <input type="number" id="drawCount" min="3" max="20" value="3" style="width: 60px; text-align:center;">
                 </div>
             </div>
             
             <button id="spinBtn" class="spin-btn" onclick="drawJackpot()">LOSUJ!</button>
-            
             <div id="result" class="hidden">
                 <div id="winnerNames" style="font-size: 22px; font-weight: bold; color: #fff; margin-bottom: 10px;"></div>
-                <div id="winnerTopic" style="font-size: 18px; color: #4CAF50; font-style: italic; background: #000; padding: 10px; border-radius: 5px;"></div>
+                <div id="winnerTopic" style="font-size: 18px; color: #4CAF50; font-style: italic;"></div>
             </div>
 
             <div class="panel">
@@ -190,12 +197,10 @@
     </div>
 
     <script>
-        // --- KONFIGURACJA ---
         const ADMIN_DISCORD_ID = "767437050513063946"; 
         const CLIENT_ID = "1477107560988414067";
         const REDIRECT_URI = window.location.origin + window.location.pathname;
 
-        // DŹWIĘKI
         const spinSound = new Audio("https://www.soundjay.com/misc/sounds/slot-machine-payout-1.mp3");
         const winSound = new Audio("https://www.soundjay.com/misc/sounds/win-chime-02.mp3");
 
@@ -208,21 +213,18 @@
         let currentDiscordUser = null, currentDiscordID = null, isAdmin = false;
         let playersData = [], players = [], topics = [], bankTopicsData = [], historyData = [], bannedList = {};
 
-        // INICJALIZACJA
         async function initApp() {
             const fragment = new URLSearchParams(window.location.hash.slice(1));
             const accessToken = fragment.get('access_token');
-
-            if (accessToken) {
-                loadUserData(accessToken);
-            } else {
-                document.getElementById('statusMsg').innerText = "Czekanie na autoryzację...";
-                setTimeout(() => { if (!currentDiscordID) showManualLogin(); }, 3000);
+            if (accessToken) loadUserData(accessToken);
+            else {
+                document.getElementById('statusMsg').innerText = "Czekanie na logowanie...";
+                setTimeout(() => { if (!currentDiscordID) showManualLogin(); }, 2000);
             }
         }
 
         function showManualLogin() {
-            document.getElementById('statusMsg').innerText = "Wymagane zalogowanie przez Discord.";
+            document.getElementById('statusMsg').innerText = "Wymagana autoryzacja.";
             const btn = document.getElementById('discordLoginBtn');
             btn.classList.remove('hidden');
             const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=token&scope=identify`;
@@ -230,7 +232,6 @@
         }
 
         function loadUserData(token) {
-            document.getElementById('statusMsg').innerText = "Wczytywanie profilu...";
             fetch('https://discord.com/api/users/@me', { headers: { authorization: `Bearer ${token}` } })
             .then(res => res.json())
             .then(user => {
@@ -252,116 +253,75 @@
                 snap.forEach(c => { playersData.push({key: c.key, name: c.val().name, id: c.val().id}); players.push(c.val().name); });
                 updateUI();
             });
-            db.ref('discord_topics').on('value', snap => {
-                topics = []; snap.forEach(c => topics.push(c.val()));
-                updateUI();
-            });
-            db.ref('discord_adminBank').on('value', snap => {
-                bankTopicsData = []; snap.forEach(c => bankTopicsData.push({key: c.key, ...c.val()}));
-                if(isAdmin) updateAdminBankUI();
-            });
-            db.ref('discord_history').on('value', snap => {
-                historyData = []; snap.forEach(c => historyData.push(c.val()));
-                historyData.reverse(); updateUI();
-            });
+            db.ref('discord_topics').on('value', snap => { topics = []; snap.forEach(c => topics.push(c.val())); updateUI(); });
+            db.ref('discord_adminBank').on('value', snap => { bankTopicsData = []; snap.forEach(c => bankTopicsData.push({key: c.key, ...c.val()})); if(isAdmin) updateAdminBankUI(); });
+            db.ref('discord_history').on('value', snap => { historyData = []; snap.forEach(c => historyData.push(c.val())); historyData.reverse(); updateUI(); });
             db.ref('discord_bans').on('value', snap => { bannedList = snap.val() || {}; updateBanUI(); });
         }
 
-        // AKCJE
         function joinGame() {
-            if (bannedList[currentDiscordID]) return alert("Jesteś zbanowany!");
-            if (players.includes(currentDiscordUser)) return alert("Już jesteś na liście!");
+            if (bannedList[currentDiscordID]) return alert("Zbanowany!");
+            if (players.includes(currentDiscordUser)) return alert("Już tu jesteś!");
             db.ref('discord_players').push({ name: currentDiscordUser, id: currentDiscordID });
+        }
+
+        function addBot() {
+            const name = document.getElementById('botNameInput').value.trim();
+            if(!name) return alert("Podaj imię bota!");
+            db.ref('discord_players').push({ name: "🤖 " + name, id: "BOT_" + Date.now() });
+            document.getElementById('botNameInput').value = "";
         }
 
         function addTopic() {
             const txt = document.getElementById('newTopic').value.trim();
-            if(!txt) return alert("Wpisz temat!");
-            const myCount = topics.filter(t => t.author === currentDiscordUser).length;
-            if(myCount >= 5) return alert("Limit 5 tematów!");
-            const obj = {author: currentDiscordUser, text: txt};
-            db.ref('discord_topics').push(obj);
-            db.ref('discord_adminBank').push(obj);
+            if(!txt) return;
+            db.ref('discord_topics').push({author: currentDiscordUser, text: txt});
+            db.ref('discord_adminBank').push({author: currentDiscordUser, text: txt});
             document.getElementById('newTopic').value = "";
         }
 
         function drawJackpot() {
             const mode = document.querySelector('input[name="gameMode"]:checked').value;
             const count = mode === 'versus' ? 2 : parseInt(document.getElementById('drawCount').value);
-            if(players.length < count || topics.length === 0) return alert("Brakuje graczy lub tematów!");
-
+            if(players.length < count || topics.length === 0) return alert("Braki!");
             const btn = document.getElementById('spinBtn');
             btn.disabled = true;
             document.getElementById('result').classList.remove('hidden');
-
-            spinSound.currentTime = 0;
             spinSound.play().catch(() => {});
-
-            const interval = setInterval(() => {
-                const randoms = players.sort(() => 0.5 - Math.random()).slice(0, count);
-                document.getElementById('winnerNames').innerText = randoms.join(" VS ");
-            }, 100);
-
+            const si = setInterval(() => { document.getElementById('winnerNames').innerText = players.sort(() => 0.5 - Math.random()).slice(0, count).join(" VS "); }, 100);
             setTimeout(() => {
-                clearInterval(interval);
-                spinSound.pause();
-                winSound.currentTime = 0;
-                winSound.play().catch(() => {});
-
-                const finalPlayers = players.sort(() => 0.5 - Math.random()).slice(0, count);
-                const finalTopic = topics[Math.floor(Math.random() * topics.length)];
-                
-                document.getElementById('winnerNames').innerText = "🏆 " + finalPlayers.join(" VS ") + " 🏆";
-                document.getElementById('winnerTopic').innerText = `"${finalTopic.text}" (Autor: ${finalTopic.author})`;
-                
-                db.ref('discord_history').push({
-                    time: new Date().toLocaleTimeString('pl-PL'),
-                    players: finalPlayers.join(" VS "),
-                    topic: finalTopic.text,
-                    author: finalTopic.author,
-                    mode: mode
-                });
+                clearInterval(si); winSound.play().catch(() => {});
+                const finalP = players.sort(() => 0.5 - Math.random()).slice(0, count);
+                const finalT = topics[Math.floor(Math.random() * topics.length)];
+                document.getElementById('winnerNames').innerText = "🏆 " + finalP.join(" VS ") + " 🏆";
+                document.getElementById('winnerTopic').innerText = `"${finalT.text}" (${finalT.author})`;
+                db.ref('discord_history').push({time: new Date().toLocaleTimeString('pl-PL'), players: finalP.join(" VS "), topic: finalT.text, author: finalT.author});
                 db.ref('discord_topics').remove();
                 btn.disabled = false;
             }, 2500);
         }
 
-        // UI HELPERS
         function updateUI() {
             document.getElementById('playerCountDisplay').innerText = players.length;
             document.getElementById('topicCountDisplay').innerText = topics.length;
-            document.getElementById('activePlayersList').innerHTML = playersData.map(p => 
-                `<li>👤 ${p.name} ${isAdmin ? `<button class="kick-btn" onclick="banPlayer('${p.key}','${p.id}','${p.name}')">BAN</button>` : ''}</li>`
-            ).join("");
-            document.getElementById('historyList').innerHTML = historyData.slice(0,10).map(h => 
-                `<li>[${h.time}] <b>${h.players}</b>: ${h.topic}</li>`
-            ).join("");
+            document.getElementById('activePlayersList').innerHTML = playersData.map(p => `<li>👤 ${p.name} ${isAdmin ? `<button class="kick-btn" onclick="banPlayer('${p.key}','${p.id}','${p.name}')">BAN</button>` : ''}</li>`).join("");
+            document.getElementById('historyList').innerHTML = historyData.slice(0,10).map(h => `<li>[${h.time}] <b>${h.players}</b>: ${h.topic}</li>`).join("");
             document.getElementById('joinPoolBtn').disabled = players.includes(currentDiscordUser);
         }
 
         function updateAdminBankUI() {
             const s = document.getElementById('adminTopicSelect');
-            s.innerHTML = '<option value="">-- Wybierz temat z banku --</option>' + 
-                bankTopicsData.map(t => `<option value="${t.key}">${t.text}</option>`).join("");
+            s.innerHTML = '<option value="">-- Wybierz temat z banku --</option>' + bankTopicsData.map(t => `<option value="${t.key}">${t.text}</option>`).join("");
         }
 
         function updateBanUI() {
-            document.getElementById('banListUI').innerHTML = Object.keys(bannedList).map(id => 
-                `<li>🛑 ${bannedList[id]} <button class="unban-btn" onclick="db.ref('discord_bans/${id}').remove()">Odbanuj</button></li>`
-            ).join("");
+            document.getElementById('banListUI').innerHTML = Object.keys(bannedList).map(id => `<li>🛑 ${bannedList[id]} <button class="unban-btn" onclick="db.ref('discord_bans/${id}').remove()">Odbanuj</button></li>`).join("");
         }
 
-        function banPlayer(key, id, name) {
-            if(confirm(`Zbanować ${name}?`)) {
-                db.ref('discord_bans/' + id).set(name);
-                db.ref('discord_players/' + key).remove();
-            }
-        }
-
+        function banPlayer(key, id, name) { if(confirm(`Ban ${name}?`)) { db.ref('discord_bans/' + id).set(name); db.ref('discord_players/' + key).remove(); } }
         function toggleViewMode() { document.body.classList.toggle('preview-player-mode'); }
         function toggleMode() { document.getElementById('deathmatchSettings').classList.toggle('hidden', document.querySelector('input[name="gameMode"]:checked').value === 'versus'); }
         
-        // ADMIN BANK ACTIONS
         window.pushBankTopic = () => {
             const k = document.getElementById('adminTopicSelect').value;
             if(k) db.ref('discord_topics').push({author: "HOST", text: bankTopicsData.find(x => x.key === k).text});
@@ -373,7 +333,7 @@
         };
         window.deleteBankTopic = () => {
             const k = document.getElementById('adminTopicSelect').value;
-            if(k && confirm("Usunąć ze skarbca?")) db.ref('discord_adminBank/' + k).remove();
+            if(k && confirm("Czy usunąć ten temat ze skarbca na zawsze?")) db.ref('discord_adminBank/' + k).remove();
         };
         window.clearPlayers = () => { if(confirm("Wyczyścić wszystkich graczy?")) db.ref('discord_players').remove(); };
         window.clearTopics = () => { if(confirm("Wyczyścić pulę tematów?")) db.ref('discord_topics').remove(); };
