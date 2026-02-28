@@ -50,6 +50,12 @@
         button.clear-btn:hover { background: #c82333; }
         button.kick-btn { background: #dc3545; color: white; border: none; border-radius: 3px; cursor: pointer; padding: 2px 8px; font-size: 12px; float: right; margin-top: 2px;}
 
+        /* Styl Skarbca Admina */
+        .admin-bank-panel { border-color: #007bff; background: rgba(0, 123, 255, 0.05); }
+        .admin-bank-panel h3 { border-bottom-color: #007bff; color: #5bc0de; }
+        .btn-blue { background: #007bff; }
+        .btn-blue:hover { background: #0056b3; }
+
         .settings-panel { background: rgba(0, 0, 0, 0.6); padding: 20px; border-radius: 10px; border: 2px solid #d4af37; margin-bottom: 25px; display: flex; flex-direction: column; align-items: center; }
         .radio-group { margin-bottom: 15px; }
         .radio-group label { cursor: pointer; margin: 0 10px; font-size: 16px; color: #fff; }
@@ -77,7 +83,7 @@
         .mode-versus { border-bottom: 2px solid #007bff; }
         .mode-deathmatch { border-bottom: 2px solid #dc3545; }
 
-        /* Magia ukrywania elementów TYLKO DLA DESTRUKCYJNYCH AKCJI */
+        /* Magia ukrywania elementów Hosta */
         .admin-only { display: none; }
         body.is-admin .admin-only { display: block; }
 
@@ -109,10 +115,29 @@
                 <select id="topicAuthor">
                     <option value="">-- Wybierz autora --</option>
                 </select>
-                <input type="text" id="newTopic" placeholder="Wpisz temat do dyskusji">
+                <input type="text" id="newTopic" placeholder="Wpisz temat na tę rundę">
                 <button class="action-btn" onclick="addTopic()">Dodaj do Puli</button>
-                <div class="stats-info">Tematów w puli: <span id="topicCountDisplay">0</span></div>
-                <button class="action-btn clear-btn admin-only" onclick="clearTopics()">🗑️ Wyczyść pulę tematów</button>
+                <div class="stats-info">Tematów w obecnej puli: <span id="topicCountDisplay">0</span></div>
+                <button class="action-btn clear-btn admin-only" onclick="clearTopics()">🗑️ Wyczyść obecną pulę</button>
+            </div>
+        </div>
+
+        <div class="panel admin-only admin-bank-panel" style="margin-bottom: 25px;">
+            <h3>🏦 Skarbiec Tematów (Admin)</h3>
+            <p style="font-size: 12px; color: #888; margin-top: 0;">Wszystkie tematy kiedykolwiek dodane trafiają tutaj. Nie znikają po losowaniu.</p>
+            
+            <select id="adminTopicSelect" style="border-color: #007bff;">
+                <option value="">-- Wybierz temat ze skarbca --</option>
+            </select>
+            
+            <div style="display: flex; gap: 10px;">
+                <button class="action-btn btn-blue" onclick="pushBankTopic()">➕ Dorzuć do obecnej rundy</button>
+                <button class="action-btn clear-btn" onclick="deleteBankTopic()" style="margin-top:0;">🗑️ Usuń ze skarbca</button>
+            </div>
+
+            <div style="margin-top: 15px; border-top: 1px dashed #444; padding-top: 10px;">
+                <input type="text" id="adminNewTopic" placeholder="Stwórz nowy temat prosto do skarbca..." style="border-color: #007bff;">
+                <button class="action-btn btn-blue" onclick="createBankTopic()">Zapisz w skarbcu</button>
             </div>
         </div>
 
@@ -147,7 +172,6 @@
     <button class="admin-login-btn" onclick="loginAsAdmin()">⚙️ Panel Host (Zaloguj)</button>
 
     <script>
-        // Inicjalizacja Twojej bazy Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyBu8MIxIAAYwYnDEofUE4mZep7cor5MlFM",
             authDomain: "intelektualny-jackpot.firebaseapp.com",
@@ -164,16 +188,16 @@
         let playersData = []; 
         let players = [];     
         let topics = [];
+        let bankTopicsData = []; // Baza tematów skarbca
         let history = [];
         let isAdmin = false;
 
-        // --- LOGOWANIE ADMINA ---
         function loginAsAdmin() {
             const password = prompt("Wprowadź hasło Hosta:");
             if (password === "jackpot123") {
                 isAdmin = true;
                 document.body.classList.add("is-admin");
-                alert("Zalogowano pomyślnie! Przyciski usuwania i czyszczenia zostały odblokowane.");
+                alert("Zalogowano pomyślnie! Masz dostęp do Skarbca Tematów.");
                 updateUI();
             } else if (password !== null) {
                 alert("Nieprawidłowe hasło!");
@@ -182,8 +206,7 @@
 
         // --- NASŁUCHIWANIE BAZY W CZASIE RZECZYWISTYM ---
         db.ref('players').on('value', (snapshot) => {
-            playersData = [];
-            players = [];
+            playersData = []; players = [];
             if (snapshot.exists()) {
                 snapshot.forEach((child) => { 
                     playersData.push({ key: child.key, name: child.val() });
@@ -193,12 +216,24 @@
             updateUI();
         });
 
+        // Nasłuchuj publicznej puli
         db.ref('topics').on('value', (snapshot) => {
             topics = [];
             if (snapshot.exists()) {
                 snapshot.forEach((child) => { topics.push(child.val()); });
             }
             updateUI();
+        });
+
+        // Nasłuchuj SKARBCA ADMINA
+        db.ref('adminBank').on('value', (snapshot) => {
+            bankTopicsData = [];
+            if (snapshot.exists()) {
+                snapshot.forEach((child) => { 
+                    bankTopicsData.push({ key: child.key, ...child.val() }); 
+                });
+            }
+            updateAdminBankUI();
         });
 
         db.ref('history').on('value', (snapshot) => {
@@ -222,21 +257,16 @@
             const name = document.getElementById('newPlayer').value.trim();
             if (!name) return alert("Wpisz nazwę gracza!");
             if (players.includes(name)) return alert("Gracz jest już na liście!");
-            
             db.ref('players').push(name);
             document.getElementById('newPlayer').value = "";
         }
 
         function kickPlayer(key) {
-            if(confirm("Czy wyrzucić tego gracza z puli?")) {
-                db.ref('players/' + key).remove();
-            }
+            if(confirm("Czy wyrzucić tego gracza z puli?")) db.ref('players/' + key).remove();
         }
 
         function clearPlayers() {
-            if(confirm("Czy na pewno chcesz bezpowrotnie usunąć wszystkich graczy?")) {
-                db.ref('players').remove();
-            }
+            if(confirm("Czy na pewno chcesz usunąć wszystkich graczy?")) db.ref('players').remove();
         }
 
         function addTopic() {
@@ -246,25 +276,54 @@
             if (!text) return alert("Wpisz treść tematu!");
 
             const authorTopics = topics.filter(t => t.author === author);
-            if (authorTopics.length >= 5) return alert(`Gracz ${author} wykorzystał już swój limit 5 tematów!`);
+            if (authorTopics.length >= 5) return alert(`Gracz ${author} wykorzystał limit 5 tematów w tej rundzie!`);
 
-            db.ref('topics').push({ author: author, text: text });
+            const topicObj = { author: author, text: text };
+            
+            // Wysyłamy do publicznej puli ORAZ potajemnie do Skarbca
+            db.ref('topics').push(topicObj);
+            db.ref('adminBank').push(topicObj); 
+
             document.getElementById('newTopic').value = "";
         }
 
         function clearTopics() {
-            if(confirm("Czy na pewno chcesz całkowicie opróżnić pulę tematów w chmurze?")) {
+            if(confirm("Czy wyczyścić publiczną pulę tematów? (Nie usunie to ich ze Skarbca)")) {
                 db.ref('topics').remove();
             }
         }
 
+        // --- FUNKCJE SKARBCA ADMINA ---
+        function createBankTopic() {
+            const text = document.getElementById('adminNewTopic').value.trim();
+            if(!text) return alert("Wpisz treść tematu!");
+            db.ref('adminBank').push({ author: "ADMIN", text: text });
+            document.getElementById('adminNewTopic').value = "";
+            alert("Zapisano w skarbcu!");
+        }
+
+        function pushBankTopic() {
+            const key = document.getElementById('adminTopicSelect').value;
+            if(!key) return alert("Wybierz temat z listy!");
+            const topic = bankTopicsData.find(t => t.key === key);
+            db.ref('topics').push({ author: "ADMIN (ze skarbca)", text: topic.text });
+            alert("Przerzucono temat do publicznej puli!");
+        }
+
+        function deleteBankTopic() {
+            const key = document.getElementById('adminTopicSelect').value;
+            if(!key) return alert("Wybierz temat z listy!");
+            if(confirm("Czy usunąć ten temat ze skarbca na zawsze?")) {
+                db.ref('adminBank/' + key).remove();
+            }
+        }
+
         function drawJackpot() {
-            // USUNIĘTO BLOKADĘ ADMINA - teraz każdy może losować!
             const mode = document.querySelector('input[name="gameMode"]:checked').value;
             const drawCount = mode === 'versus' ? 2 : parseInt(document.getElementById('drawCount').value);
             
             if (players.length < drawCount) return alert(`Potrzebujesz co najmniej ${drawCount} graczy na liście!`);
-            if (topics.length === 0) return alert("Pula tematów jest pusta!");
+            if (topics.length === 0) return alert("Publiczna pula tematów jest pusta! Ktoś musi dorzucić temat do tej rundy.");
 
             const btn = document.getElementById('spinBtn');
             const resultDiv = document.getElementById('result');
@@ -307,6 +366,10 @@
 
                 const plainPlayersStr = finalPlayersArr.join(mode === 'versus' ? " vs " : " ⚡ ");
                 saveToHistory(plainPlayersStr, finalTopic, topicAuthorDisplay, mode);
+
+                // KRYTYCZNA ZMIANA: Po udanym losowaniu z publicznej puli, zerujemy ją!
+                db.ref('topics').remove();
+
             }, 2500);
         }
 
@@ -324,6 +387,19 @@
             db.ref('history').push({ time: timeString, players: playersStr, topic: topic, author: author, mode: mode });
         }
 
+        function updateAdminBankUI() {
+            const select = document.getElementById('adminTopicSelect');
+            const currentVal = select.value; 
+            
+            let options = '<option value="">-- Wybierz temat ze skarbca --</option>';
+            bankTopicsData.forEach(t => { 
+                options += `<option value="${t.key}">${t.text} (${t.author})</option>`; 
+            });
+            select.innerHTML = options;
+            
+            if (bankTopicsData.find(t => t.key === currentVal)) select.value = currentVal;
+        }
+
         function updateUI() {
             document.getElementById('playerCountDisplay').innerText = players.length;
             document.getElementById('topicCountDisplay').innerText = topics.length;
@@ -331,7 +407,6 @@
             const activeList = document.getElementById('activePlayersList');
             activeList.innerHTML = "";
             playersData.forEach(p => {
-                // Przycisk wyrzucania gracza pojawi się tylko wtedy, gdy jesteś zalogowany jako Admin
                 const kickBtnHTML = isAdmin ? `<button class="kick-btn" onclick="kickPlayer('${p.key}')">Wyrzuć</button>` : '';
                 activeList.innerHTML += `<li style="padding: 5px 10px;">👤 ${p.name} ${kickBtnHTML}</li>`;
             });
